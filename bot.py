@@ -87,7 +87,6 @@ try:
     print("Status:", status)
 
     if status != ultimo_status:
-
         ultimo_status = status
         hora_atual = datetime.now()
 
@@ -112,6 +111,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
