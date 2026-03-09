@@ -80,11 +80,6 @@ try:
         hora_login = datetime.now()
 
     while True:
-
-    if status == "online":
-        hora_login = datetime.now()
-
-    while True:
         agora = datetime.now().strftime("%H:%M:%S")
         print(f"[{agora}] Verificando perfil...")
 
@@ -118,6 +113,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
