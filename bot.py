@@ -88,7 +88,6 @@ try:
 
     if status != ultimo_status:
 
-        # atualiza primeiro para evitar duplicações
         ultimo_status = status
         hora_atual = datetime.now()
 
@@ -107,12 +106,13 @@ try:
                     f"⏱ Tempo online: {horas}h {minutos}m"
                 )
 
-    # espera 60 segundos antes da próxima verificação
+    # espera sempre fora do if
     time.sleep(60)
 except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
