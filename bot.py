@@ -45,32 +45,32 @@ def verificar_status():
 # =========================
 # BLOCO PRINCIPAL
 # =========================
+
+# variável global para inicialização
+mensagem_inicial_enviada = False
+
 try:
     status = verificar_status()
     ultimo_status = status
     ultimo_evento = None
     hora_login = None
 
-    # envia mensagem inicial apenas UMA VEZ
-    emoji = "🟢" if status == "online" else "🔴"
-    mensagem_inicio = (
-        "🚀 **Rucoy Tracker iniciado**\n\n"
-        "👤 Personagem: **Bank Of Alan**\n"
-        f"📡 Status atual: **{emoji} {status.upper()}**\n"
-        "⏱ Verificação: **1 minuto**"
-    )
-    enviar(mensagem_inicio)  # só aqui
+    if not mensagem_inicial_enviada:
+        emoji = "🟢" if status == "online" else "🔴"
+        mensagem_inicio = (
+            "🚀 **Rucoy Tracker iniciado**\n\n"
+            "👤 Personagem: **Bank Of Alan**\n"
+            f"📡 Status atual: **{emoji} {status.upper()}**\n"
+            "⏱ Verificação: **1 minuto**"
+        )
+        enviar(mensagem_inicio)
+        mensagem_inicial_enviada = True  # marca como enviada
 
     if status == "online":
         hora_login = datetime.now()
 
-    # LOOP PRINCIPAL
     while True:
-        agora = datetime.now().strftime("%H:%M:%S")
-        print(f"[{agora}] Verificando perfil...")
-
         status = verificar_status()
-        print("Status:", status)
 
         if status is not None and status != ultimo_status and status != ultimo_evento:
             hora_atual = datetime.now()
