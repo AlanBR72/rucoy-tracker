@@ -2,22 +2,24 @@ from flask import Flask
 import threading
 import os
 
+from bs4 import BeautifulSoup
+import requests
+import time
+from datetime import datetime
+
 app = Flask(__name__)
 
-@app.route('/')
+@app.route("/")
 def home():
     return "Bot online"
 
-def run_web():
+def rodar_web():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-threading.Thread(target=run_web).start()
+threading.Thread(target=rodar_web).start()
 
-import requests
-from bs4 import BeautifulSoup
-import time
-from datetime import datetime
+print("🌐 Servidor web iniciado")
 
 url = "https://www.rucoyonline.com/characters/Bank%20Of%20Alan"
 webhook = "https://discord.com/api/webhooks/1391526244511907900/X4qA3HTFE9NLO2klBMO3LzxvrLQKoQZWEPITkYWY5f0ws9PmREUp4mXa9F1kCvROKEv8"
@@ -93,4 +95,5 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
