@@ -48,13 +48,16 @@ def verificar_status():
 
 # variável global para inicialização
 mensagem_inicial_enviada = False
+ultimo_status = None
+ultimo_evento = None
+hora_login = None
 
 try:
+    # pega status inicial
     status = verificar_status()
     ultimo_status = status
-    ultimo_evento = None
-    hora_login = None
 
+    # envia a mensagem inicial apenas uma vez
     if not mensagem_inicial_enviada:
         emoji = "🟢" if status == "online" else "🔴"
         mensagem_inicio = (
@@ -64,36 +67,46 @@ try:
             "⏱ Verificação: **1 minuto**"
         )
         enviar(mensagem_inicio)
-        mensagem_inicial_enviada = True  # marca como enviada
+        mensagem_inicial_enviada = True
 
     if status == "online":
         hora_login = datetime.now()
 
+    # loop principal 24h
     while True:
-        status = verificar_status()
+        agora = datetime.now().strftime("%H:%M:%S")
+        print(f"[{agora}] Verificando perfil...")
 
+        status = verificar_status()
+        print("Status:", status)
+
+        # envia mensagem somente se o status mudou e ainda não enviamos
         if status is not None and status != ultimo_status and status != ultimo_evento:
             hora_atual = datetime.now()
 
             if status == "online":
                 hora_login = hora_atual
-                enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
+                # atualiza antes de enviar para evitar duplicação
                 ultimo_evento = "online"
+                ultimo_status = status
+                enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
 
             elif status == "offline" and hora_login:
                 tempo = hora_atual - hora_login
                 horas = tempo.seconds // 3600
                 minutos = (tempo.seconds % 3600) // 60
+                # atualiza antes de enviar
+                ultimo_evento = "offline"
+                ultimo_status = status
                 enviar(
                     f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
                     f"⏱ Tempo online: {horas}h {minutos}m"
                 )
-                ultimo_evento = "offline"
 
-            ultimo_status = status
-
+        # espera sempre fora do if
         time.sleep(60)
 
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
