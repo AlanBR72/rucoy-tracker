@@ -20,6 +20,7 @@ def rodar_web():
 threading.Thread(target=rodar_web).start()
 
 print("🌐 Servidor web iniciado")
+enviar("🧪 Teste de webhook - bot iniciado")
 
 url = "https://www.rucoyonline.com/characters/Bank%20Of%20Alan"
 webhook = "https://discord.com/api/webhooks/1391526244511907900/X4qA3HTFE9NLO2klBMO3LzxvrLQKoQZWEPITkYWY5f0ws9PmREUp4mXa9F1kCvROKEv8"
@@ -104,6 +105,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
