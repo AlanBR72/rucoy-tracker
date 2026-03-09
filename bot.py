@@ -28,7 +28,16 @@ ultimo_status = None
 hora_login = None
 
 def enviar(msg):
-    requests.post(webhook, json={"content": msg})
+    try:
+        r = requests.post(webhook, json={"content": msg})
+
+        if r.status_code == 204:
+            print("✅ Mensagem enviada ao Discord")
+        else:
+            print("❌ Erro ao enviar:", r.status_code, r.text)
+
+    except Exception as e:
+        print("❌ Falha ao enviar mensagem:", e)
 
 def verificar_status():
     r = requests.get(url)
@@ -95,5 +104,6 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
