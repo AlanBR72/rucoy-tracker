@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import time
 from datetime import datetime
+import pytz
+from datetime import datetime
 
 # -----------------------
 # CONFIGURAÇÃO
@@ -12,6 +14,10 @@ webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJ
 ultimo_status = None      # status atual do site: "online" ou "offline"
 ultimo_evento = None      # último evento enviado ao Discord
 hora_login = None         # hora do login
+
+brasil = pytz.timezone("America/Sao_Paulo")
+hora_atual = datetime.now(brasil)
+hora_formatada = hora_atual.strftime("%H:%M:%S")
 
 # -----------------------
 # FUNÇÃO DE ENVIO AO DISCORD
@@ -85,14 +91,17 @@ try:
 
         # envia mensagem somente se o status mudou e ainda não enviamos
         if status is not None and status != ultimo_status and status != ultimo_evento:
-            hora_atual = datetime.now()
+            
+            from datetime import datetime, timedelta
+            hora_atual = datetime.utcnow() - timedelta(hours=3)
+            hora_formatada = hora_atual.strftime("%H:%M:%S")
 
             if status == "online":
                 hora_login = hora_atual
                 # atualiza antes de enviar para evitar duplicação
                 ultimo_evento = "online"
                 ultimo_status = status
-                enviar(f"🟢 Alan Virtue logou às {hora_atual.strftime('%H:%M:%S')}")
+                enviar(f"🟢 Alan Virtue logou às {hora_formatada}")
 
             elif status == "offline" and hora_login:
                 tempo = hora_atual - hora_login
@@ -102,7 +111,7 @@ try:
                 ultimo_evento = "offline"
                 ultimo_status = status
                 enviar(
-                    f"🔴 Alan Virtue deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+                    f"🔴 Alan Virtue deslogou às {hora_formatada}\n"
                     f"⏱ Tempo online: {horas}h {minutos}m"
                 )
 
@@ -112,6 +121,7 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
