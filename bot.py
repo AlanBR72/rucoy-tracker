@@ -6,6 +6,7 @@ from datetime import datetime
 # -----------------------
 # CONFIGURAÇÃO
 # -----------------------
+
 url = "https://www.rucoyonline.com/characters/Bank%20Of%20Alan"
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
 ultimo_status = None      # status atual do site: "online" ou "offline"
@@ -15,6 +16,7 @@ hora_login = None         # hora do login
 # -----------------------
 # FUNÇÃO DE ENVIO AO DISCORD
 # -----------------------
+
 def enviar(msg):
     try:
         r = requests.post(webhook, json={"content": msg}, timeout=10)
@@ -32,6 +34,7 @@ def enviar(msg):
 # -----------------------
 # FUNÇÃO PARA VERIFICAR STATUS NO SITE
 # -----------------------
+
 def verificar_status():
     try:
         r = requests.get(url, timeout=10)
@@ -109,4 +112,5 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
