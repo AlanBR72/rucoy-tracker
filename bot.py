@@ -42,16 +42,16 @@ def verificar_status():
         print("❌ Falha ao acessar o site:", e)
         return None
 
-# -----------------------
+# =========================
 # BLOCO PRINCIPAL
-# -----------------------
+# =========================
 try:
-    # status inicial
     status = verificar_status()
     ultimo_status = status
     ultimo_evento = None
+    hora_login = None
 
-    # envia mensagem inicial apenas uma vez
+    # envia mensagem inicial apenas UMA VEZ
     emoji = "🟢" if status == "online" else "🔴"
     mensagem_inicio = (
         "🚀 **Rucoy Tracker iniciado**\n\n"
@@ -59,14 +59,12 @@ try:
         f"📡 Status atual: **{emoji} {status.upper()}**\n"
         "⏱ Verificação: **1 minuto**"
     )
-    enviar(mensagem_inicio)
+    enviar(mensagem_inicio)  # só aqui
 
     if status == "online":
         hora_login = datetime.now()
 
-    # =========================
-    # LOOP PRINCIPAL 24H
-    # =========================
+    # LOOP PRINCIPAL
     while True:
         agora = datetime.now().strftime("%H:%M:%S")
         print(f"[{agora}] Verificando perfil...")
@@ -74,7 +72,6 @@ try:
         status = verificar_status()
         print("Status:", status)
 
-        # envia mensagem apenas se mudou de status e ainda não enviamos
         if status is not None and status != ultimo_status and status != ultimo_evento:
             hora_atual = datetime.now()
 
@@ -93,10 +90,8 @@ try:
                 )
                 ultimo_evento = "offline"
 
-            # atualiza status do site
             ultimo_status = status
 
-        # espera 60 segundos antes da próxima verificação
         time.sleep(60)
 
 except KeyboardInterrupt:
