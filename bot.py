@@ -26,36 +26,18 @@ def verificar_status():
     r = requests.get(url)
     soup = BeautifulSoup(r.text, "html.parser")
     texto = soup.text.lower()
+    return "online" if "currently online" in texto else "offline"
 
-    if "currently online" in texto:
-        return "online"
-    else:
-        return "offline"
-
+# =========================
+# BLOCO PRINCIPAL
+# =========================
 try:
-    # pega status inicial
-    status = verificar_status()
-    ultimo_status = status
-
-    emoji = "🟢" if status == "online" else "🔴"
-    mensagem_inicio = (
-        "🚀 **Rucoy Tracker iniciado**\n\n"
-        "👤 Personagem: **Bank Of Alan**\n"
-        f"📡 Status atual: **{emoji} {status.upper()}**\n"
-        "⏱ Verificação: **1 minuto**"
-    )
-    enviar(mensagem_inicio)
-
-    if status == "online":
-        hora_login = datetime.now()
-
-    # loop principal deve ficar dentro do try
-try:
-    # pega status inicial
+    # status inicial
     status = verificar_status()
     ultimo_status = status
     ultimo_evento = None
 
+    # envia mensagem inicial
     emoji = "🟢" if status == "online" else "🔴"
     mensagem_inicio = (
         "🚀 **Rucoy Tracker iniciado**\n\n"
@@ -69,7 +51,7 @@ try:
         hora_login = datetime.now()
 
     # =========================
-    # loop principal dentro do try
+    # LOOP PRINCIPAL
     # =========================
     while True:
         agora = datetime.now().strftime("%H:%M:%S")
@@ -78,7 +60,7 @@ try:
         status = verificar_status()
         print("Status:", status)
 
-        # só envia mensagem se mudou de status e ainda não enviamos
+        # envia mensagem apenas se mudou de status e não duplicou
         if status != ultimo_status and status != ultimo_evento:
             hora_atual = datetime.now()
 
@@ -100,14 +82,9 @@ try:
             # atualiza status do site
             ultimo_status = status
 
+        # verifica a cada 60 segundos
         time.sleep(60)
 
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
-
-
-
-
-
-
