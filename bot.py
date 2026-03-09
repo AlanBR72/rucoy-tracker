@@ -3,41 +3,55 @@ from bs4 import BeautifulSoup
 import time
 from datetime import datetime
 
+# -----------------------
+# CONFIGURAÇÃO
+# -----------------------
 url = "https://www.rucoyonline.com/characters/Bank%20Of%20Alan"
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
-ultimo_status = None
-hora_login = None
+ultimo_status = None      # status atual do site: "online" ou "offline"
+ultimo_evento = None      # último evento enviado ao Discord
+hora_login = None         # hora do login
 
+# -----------------------
+# FUNÇÃO DE ENVIO AO DISCORD
+# -----------------------
 def enviar(msg):
     try:
         r = requests.post(webhook, json={"content": msg}, timeout=10)
         if r.status_code == 204:
             print("✅ Mensagem enviada ao Discord")
-        elif r.status_code == 429:
+        elif r.status_code == 429:  # rate-limit
             retry = r.json().get("retry_after", 5)
-            print(f"⏳ Rate limit. Esperando {retry} segundos...")
+            print(f"⏳ Rate limit do Discord. Esperando {retry} segundos...")
             time.sleep(retry)
         else:
-            print("❌ Erro:", r.status_code, r.text)
+            print("❌ Erro ao enviar mensagem:", r.status_code, r.text)
     except Exception as e:
-        print("❌ Falha:", e)
+        print("❌ Falha ao enviar mensagem:", e)
 
+# -----------------------
+# FUNÇÃO PARA VERIFICAR STATUS NO SITE
+# -----------------------
 def verificar_status():
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, "html.parser")
-    texto = soup.text.lower()
-    return "online" if "currently online" in texto else "offline"
+    try:
+        r = requests.get(url, timeout=10)
+        soup = BeautifulSoup(r.text, "html.parser")
+        texto = soup.text.lower()
+        return "online" if "currently online" in texto else "offline"
+    except Exception as e:
+        print("❌ Falha ao acessar o site:", e)
+        return None
 
-# =========================
+# -----------------------
 # BLOCO PRINCIPAL
-# =========================
+# -----------------------
 try:
     # status inicial
     status = verificar_status()
     ultimo_status = status
     ultimo_evento = None
 
-    # envia mensagem inicial
+    # envia mensagem inicial apenas uma vez
     emoji = "🟢" if status == "online" else "🔴"
     mensagem_inicio = (
         "🚀 **Rucoy Tracker iniciado**\n\n"
@@ -51,7 +65,7 @@ try:
         hora_login = datetime.now()
 
     # =========================
-    # LOOP PRINCIPAL
+    # LOOP PRINCIPAL 24H
     # =========================
     while True:
         agora = datetime.now().strftime("%H:%M:%S")
@@ -60,8 +74,8 @@ try:
         status = verificar_status()
         print("Status:", status)
 
-        # envia mensagem apenas se mudou de status e não duplicou
-        if status != ultimo_status and status != ultimo_evento:
+        # envia mensagem apenas se mudou de status e ainda não enviamos
+        if status is not None and status != ultimo_status and status != ultimo_evento:
             hora_atual = datetime.now()
 
             if status == "online":
@@ -82,7 +96,7 @@ try:
             # atualiza status do site
             ultimo_status = status
 
-        # verifica a cada 60 segundos
+        # espera 60 segundos antes da próxima verificação
         time.sleep(60)
 
 except KeyboardInterrupt:
