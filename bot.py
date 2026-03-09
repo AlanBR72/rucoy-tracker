@@ -9,7 +9,18 @@ ultimo_status = None
 hora_login = None
 
 def enviar(msg):
-    requests.post(webhook, json={"content": msg})
+    try:
+        r = requests.post(webhook, json={"content": msg}, timeout=10)
+        if r.status_code == 204:
+            print("✅ Mensagem enviada ao Discord")
+        elif r.status_code == 429:
+            retry = r.json().get("retry_after", 5)
+            print(f"⏳ Rate limit. Esperando {retry} segundos...")
+            time.sleep(retry)
+        else:
+            print("❌ Erro:", r.status_code, r.text)
+    except Exception as e:
+        print("❌ Falha:", e)
 
 def verificar_status():
     r = requests.get(url)
@@ -29,15 +40,12 @@ try:
     agora = datetime.now().strftime("%H:%M:%S")
 
     emoji = "🟢" if status == "online" else "🔴"
-
-    mensagem_inicio = (
-        "🚀 **Rucoy Tracker iniciado**\n\n"
-        "👤 Personagem: **Bank Of Alan**\n"
-        f"📡 Status atual: **{emoji} {status.upper()}**\n"
-        "⏱ Verificação: **1 minuto**"
-    )
-
-    enviar(mensagem_inicio)
+enviar(
+    f"🚀 Rucoy Tracker iniciado\n"
+    f"👤 Personagem: Bank Of Alan\n"
+    f"📡 Status atual: {emoji} {status.upper()}\n"
+    "⏱ Verificação: 1 minuto"
+)
 
     if status == "online":
         hora_login = datetime.now()
@@ -49,26 +57,21 @@ try:
         status = verificar_status()
         print("Status:", status)
 
-        if status != ultimo_status:
+        if status != ultimo_status and status is not None:
+    ultimo_status = status
 
             hora_atual = datetime.now()
-
-            if status == "online":
-                hora_login = hora_atual
-                enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
-
-            if status == "offline":
-                if hora_login:
-                    tempo = hora_atual - hora_login
-                    horas = tempo.seconds // 3600
-                    minutos = (tempo.seconds % 3600) // 60
-
-                    enviar(
-                        f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
-                        f"⏱ Tempo online: {horas}h {minutos}m"
-                    )
-
-            ultimo_status = status
+    if status == "online":
+        hora_login = hora_atual
+        enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
+    elif status == "offline" and hora_login:
+        tempo = hora_atual - hora_login
+        horas = tempo.seconds // 3600
+        minutos = (tempo.seconds % 3600) // 60
+        enviar(
+            f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+            f"⏱ Tempo online: {horas}h {minutos}m"
+        )
 
         time.sleep(60)
 
@@ -76,3 +79,4 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
