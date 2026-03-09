@@ -88,23 +88,25 @@ try:
 
         if status != ultimo_status:
 
-            hora_atual = datetime.now()
+    status_anterior = ultimo_status
+    ultimo_status = status  # atualiza antes de enviar
 
-            if status == "online":
-                hora_login = hora_atual
-                enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
+    hora_atual = datetime.now()
 
-            if status == "offline":
-                if hora_login:
-                    tempo = hora_atual - hora_login
-                    horas = tempo.seconds // 3600
-                    minutos = (tempo.seconds % 3600) // 60
+    if status == "online":
+        hora_login = hora_atual
+        enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
 
-                    enviar(
-                        f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
-                        f"⏱ Tempo online: {horas}h {minutos}m"
-                    )
+    elif status == "offline":
+        if hora_login:
+            tempo = hora_atual - hora_login
+            horas = tempo.seconds // 3600
+            minutos = (tempo.seconds % 3600) // 60
 
+            enviar(
+                f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+                f"⏱ Tempo online: {horas}h {minutos}m"
+            )
             ultimo_status = status
 
         time.sleep(60)
@@ -113,6 +115,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
