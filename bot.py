@@ -105,12 +105,13 @@ try:
                     f"⏱ Tempo online: {horas}h {minutos}m"
                 )
 
-    # espera sempre fora do if, mas ainda dentro do while
+    # espera 60 segundos entre cada verificação
     time.sleep(60)
 except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
