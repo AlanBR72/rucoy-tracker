@@ -37,7 +37,6 @@ try:
     status = verificar_status()
     ultimo_status = status
 
-    # monta mensagem inicial
     emoji = "🟢" if status == "online" else "🔴"
     mensagem_inicio = (
         "🚀 **Rucoy Tracker iniciado**\n\n"
@@ -45,14 +44,12 @@ try:
         f"📡 Status atual: **{emoji} {status.upper()}**\n"
         "⏱ Verificação: **1 minuto**"
     )
-
-    # envia apenas uma vez
     enviar(mensagem_inicio)
 
     if status == "online":
         hora_login = datetime.now()
 
-    # loop principal
+    # loop principal deve ficar dentro do try
     while True:
         agora = datetime.now().strftime("%H:%M:%S")
         print(f"[{agora}] Verificando perfil...")
@@ -60,31 +57,32 @@ try:
         status = verificar_status()
         print("Status:", status)
 
-        # só envia mensagem se status mudou
-if status != ultimo_status and status is not None:
-    hora_atual = datetime.now()
+        if status != ultimo_status and status is not None:
+            hora_atual = datetime.now()
 
-    # atualiza status imediatamente
-    ultimo_status = status
+            # atualiza status imediatamente para evitar duplicidade
+            ultimo_status = status
 
-    if status == "online":
-        hora_login = hora_atual
-        enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
+            if status == "online":
+                hora_login = hora_atual
+                enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
 
-    elif status == "offline" and hora_login:
-        tempo = hora_atual - hora_login
-        horas = tempo.seconds // 3600
-        minutos = (tempo.seconds % 3600) // 60
-        enviar(
-            f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
-            f"⏱ Tempo online: {horas}h {minutos}m"
-        )
+            elif status == "offline" and hora_login:
+                tempo = hora_atual - hora_login
+                horas = tempo.seconds // 3600
+                minutos = (tempo.seconds % 3600) // 60
+                enviar(
+                    f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+                    f"⏱ Tempo online: {horas}h {minutos}m"
+                )
 
+        # espera sempre fora do if
         time.sleep(60)
 
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
