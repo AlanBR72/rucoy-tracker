@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 # -----------------------
 # CONFIGURAÇÃO
@@ -13,8 +13,8 @@ ultimo_status = None      # status atual do site: "online" ou "offline"
 ultimo_evento = None      # último evento enviado ao Discord
 hora_login = None         # hora do login
 
-# horário local: Brasil UTC-3
-hora_atual = datetime.utcnow() - timedelta(hours=3)
+# cria hora atual em UTC e aplica o fuso de -3 horas (Brasil)
+hora_atual = datetime.now(timezone.utc) + timedelta(hours=-3)
 hora_formatada = hora_atual.strftime("%H:%M:%S")
 
 # -----------------------
@@ -119,6 +119,7 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
