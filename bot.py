@@ -40,12 +40,14 @@ try:
     agora = datetime.now().strftime("%H:%M:%S")
 
     emoji = "🟢" if status == "online" else "🔴"
-enviar(
-    f"🚀 Rucoy Tracker iniciado\n"
-    f"👤 Personagem: Bank Of Alan\n"
-    f"📡 Status atual: {emoji} {status.upper()}\n"
-    "⏱ Verificação: 1 minuto"
-)
+mensagem_inicio = (
+        "🚀 **Rucoy Tracker iniciado**\n\n"
+        "👤 Personagem: **Bank Of Alan**\n"
+        f"📡 Status atual: **{emoji} {status.upper()}**\n"
+        "⏱ Verificação: **1 minuto**"
+    )
+
+    enviar(mensagem_inicio)
 
     if status == "online":
         hora_login = datetime.now()
@@ -79,4 +81,5 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
