@@ -50,43 +50,62 @@ try:
         hora_login = datetime.now()
 
     # loop principal deve ficar dentro do try
-ultimo_status = None   # status do site
-ultimo_evento = None   # mensagem enviada: "online" ou "offline"
-
-while True:
-    agora = datetime.now().strftime("%H:%M:%S")
-    print(f"[{agora}] Verificando perfil...")
-
+try:
+    # pega status inicial
     status = verificar_status()
-    print("Status:", status)
+    ultimo_status = status
+    ultimo_evento = None
 
-    # só envia se mudou de status e não enviamos a mesma mensagem antes
-    if status != ultimo_status and status != ultimo_evento:
-        hora_atual = datetime.now()
+    emoji = "🟢" if status == "online" else "🔴"
+    mensagem_inicio = (
+        "🚀 **Rucoy Tracker iniciado**\n\n"
+        "👤 Personagem: **Bank Of Alan**\n"
+        f"📡 Status atual: **{emoji} {status.upper()}**\n"
+        "⏱ Verificação: **1 minuto**"
+    )
+    enviar(mensagem_inicio)
 
-        if status == "online":
-            hora_login = hora_atual
-            enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
-            ultimo_evento = "online"  # marca que enviamos login
+    if status == "online":
+        hora_login = datetime.now()
 
-        elif status == "offline" and hora_login:
-            tempo = hora_atual - hora_login
-            horas = tempo.seconds // 3600
-            minutos = (tempo.seconds % 3600) // 60
-            enviar(
-                f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
-                f"⏱ Tempo online: {horas}h {minutos}m"
-            )
-            ultimo_evento = "offline"  # marca que enviamos logout
+    # =========================
+    # loop principal dentro do try
+    # =========================
+    while True:
+        agora = datetime.now().strftime("%H:%M:%S")
+        print(f"[{agora}] Verificando perfil...")
 
-        # atualiza status do site
-        ultimo_status = status
+        status = verificar_status()
+        print("Status:", status)
 
-    time.sleep(60)
+        # só envia mensagem se mudou de status e ainda não enviamos
+        if status != ultimo_status and status != ultimo_evento:
+            hora_atual = datetime.now()
+
+            if status == "online":
+                hora_login = hora_atual
+                enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
+                ultimo_evento = "online"
+
+            elif status == "offline" and hora_login:
+                tempo = hora_atual - hora_login
+                horas = tempo.seconds // 3600
+                minutos = (tempo.seconds % 3600) // 60
+                enviar(
+                    f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+                    f"⏱ Tempo online: {horas}h {minutos}m"
+                )
+                ultimo_evento = "offline"
+
+            # atualiza status do site
+            ultimo_status = status
+
+        time.sleep(60)
 
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
