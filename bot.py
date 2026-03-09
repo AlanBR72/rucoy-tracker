@@ -19,9 +19,6 @@ def rodar_web():
 
 threading.Thread(target=rodar_web).start()
 
-print("🌐 Servidor web iniciado")
-enviar("🧪 Teste de webhook - bot iniciado")
-
 url = "https://www.rucoyonline.com/characters/Bank%20Of%20Alan"
 webhook = "https://discord.com/api/webhooks/1391526244511907900/X4qA3HTFE9NLO2klBMO3LzxvrLQKoQZWEPITkYWY5f0ws9PmREUp4mXa9F1kCvROKEv8"
 
@@ -34,11 +31,19 @@ def enviar(msg):
 
         if r.status_code == 204:
             print("✅ Mensagem enviada ao Discord")
+
+        elif r.status_code == 429:
+            print("⏳ Rate limit do Discord, esperando 10 segundos...")
+            time.sleep(10)
+
         else:
-            print("❌ Erro ao enviar:", r.status_code, r.text)
+            print("❌ Erro:", r.status_code, r.text)
 
     except Exception as e:
-        print("❌ Falha ao enviar mensagem:", e)
+        print("❌ Falha:", e)
+
+print("🌐 Servidor web iniciado")
+enviar("🧪 Teste de webhook - bot iniciado")
 
 def verificar_status():
     r = requests.get(url)
@@ -105,6 +110,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
