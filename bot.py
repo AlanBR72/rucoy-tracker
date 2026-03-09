@@ -33,11 +33,13 @@ def enviar(msg):
             print("✅ Mensagem enviada ao Discord")
 
         elif r.status_code == 429:
-            print("⏳ Rate limit do Discord, esperando 10 segundos...")
-            time.sleep(10)
+            data = r.json()
+            retry = data.get("retry_after", 5)
+            print(f"⏳ Rate limit. Esperando {retry} segundos...")
+            time.sleep(retry)
 
         else:
-            print("❌ Erro ao enviar:", r.status_code, r.text)
+            print("❌ Erro:", r.status_code, r.text)
 
     except Exception as e:
         print("❌ Falha:", e)
@@ -71,7 +73,8 @@ try:
         "⏱ Verificação: **1 minuto**"
     )
 
-    enviar(mensagem_inicio)
+    time.sleep(10)
+enviar(mensagem_inicio)
 
     if status == "online":
         hora_login = datetime.now()
@@ -110,6 +113,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
