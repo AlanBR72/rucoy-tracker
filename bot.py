@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import time
 from datetime import datetime
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # -----------------------
 # CONFIGURAÇÃO
@@ -15,9 +15,10 @@ ultimo_status = None      # status atual do site: "online" ou "offline"
 ultimo_evento = None      # último evento enviado ao Discord
 hora_login = None         # hora do login
 
-brasil = pytz.timezone("America/Sao_Paulo")
-hora_atual = datetime.now(brasil)
+# horário local: Brasil UTC-3
+hora_atual = datetime.utcnow() - timedelta(hours=3)
 hora_formatada = hora_atual.strftime("%H:%M:%S")
+brasil = pytz.timezone("America/Sao_Paulo")
 
 # -----------------------
 # FUNÇÃO DE ENVIO AO DISCORD
@@ -121,6 +122,7 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
