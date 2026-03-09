@@ -55,34 +55,40 @@ try:
         hora_login = datetime.now()
 
     while True:
-        agora = datetime.now().strftime("%H:%M:%S")
-        print(f"[{agora}] Verificando perfil...")
+    agora = datetime.now().strftime("%H:%M:%S")
+    print(f"[{agora}] Verificando perfil...")
 
-        status = verificar_status()
-        print("Status:", status)
+    status = verificar_status()
+    print("Status:", status)
 
-        if status != ultimo_status and status is not None:
-    ultimo_status = status
+    if status != ultimo_status and status is not None:
+        hora_atual = datetime.now()
 
-            hora_atual = datetime.now()
-    if status == "online":
-        hora_login = hora_atual
-        enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
-    elif status == "offline" and hora_login:
-        tempo = hora_atual - hora_login
-        horas = tempo.seconds // 3600
-        minutos = (tempo.seconds % 3600) // 60
-        enviar(
-            f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
-            f"⏱ Tempo online: {horas}h {minutos}m"
-        )
+        if status == "online":
+            hora_login = hora_atual
+            enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
 
-        time.sleep(60)
+        elif status == "offline":
+            if hora_login:
+                tempo = hora_atual - hora_login
+                horas = tempo.seconds // 3600
+                minutos = (tempo.seconds % 3600) // 60
+                enviar(
+                    f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+                    f"⏱ Tempo online: {horas}h {minutos}m"
+                )
+
+        # atualiza status depois de enviar mensagem
+        ultimo_status = status
+
+    # espera sempre fora do if
+    time.sleep(60)
 
 except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
