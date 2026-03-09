@@ -74,7 +74,12 @@ try:
     )
 
     time.sleep(10)
-enviar(mensagem_inicio)
+    enviar(mensagem_inicio)
+
+    if status == "online":
+        hora_login = datetime.now()
+
+    while True:
 
     if status == "online":
         hora_login = datetime.now()
@@ -113,6 +118,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
