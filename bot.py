@@ -20,15 +20,14 @@ def rodar_web():
 threading.Thread(target=rodar_web).start()
 
 url = "https://www.rucoyonline.com/characters/Bank%20Of%20Alan"
-webhook = "https://discord.com/api/webhooks/1391526244511907900/X4qA3HTFE9NLO2klBMO3LzxvrLQKoQZWEPITkYWY5f0ws9PmREUp4mXa9F1kCvROKEv8"
+webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
 
 ultimo_status = None
 hora_login = None
 
 def enviar(msg):
     try:
-        r = requests.post(webhook, json={"content": msg})
-
+        requests.post(webhook, json={"content": msg}, timeout=10)
         if r.status_code == 204:
             print("✅ Mensagem enviada ao Discord")
 
@@ -110,6 +109,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
