@@ -45,7 +45,7 @@ def enviar(msg):
         print("❌ Falha:", e)
 
 print("🌐 Servidor web iniciado")
-enviar("🧪 Teste de webhook - bot iniciado")
+enviar("🌐 Servidor web iniciado")
 
 def verificar_status():
     r = requests.get(url)
@@ -115,6 +115,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
