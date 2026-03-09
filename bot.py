@@ -61,10 +61,10 @@ try:
         print("Status:", status)
 
         # só envia mensagem se status mudou
-        if status != ultimo_status and status is not None:
+if status != ultimo_status and status is not None:
     hora_atual = datetime.now()
 
-    # atualiza o status imediatamente
+    # atualiza status imediatamente
     ultimo_status = status
 
     if status == "online":
@@ -85,5 +85,6 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
