@@ -1,8 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import time
-from datetime import datetime
-import pytz
 from datetime import datetime, timedelta
 
 # -----------------------
@@ -18,7 +16,6 @@ hora_login = None         # hora do login
 # horário local: Brasil UTC-3
 hora_atual = datetime.utcnow() - timedelta(hours=3)
 hora_formatada = hora_atual.strftime("%H:%M:%S")
-brasil = pytz.timezone("America/Sao_Paulo")
 
 # -----------------------
 # FUNÇÃO DE ENVIO AO DISCORD
@@ -122,6 +119,7 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
 
