@@ -7,7 +7,7 @@ from datetime import datetime
 # CONFIGURAÇÃO
 # -----------------------
 
-url = "https://www.rucoyonline.com/characters/Bank%20Of%20Alan"
+url = "https://www.rucoyonline.com/characters/Alan%20Virtue"
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
 ultimo_status = None      # status atual do site: "online" ou "offline"
 ultimo_evento = None      # último evento enviado ao Discord
@@ -65,7 +65,7 @@ try:
         emoji = "🟢" if status == "online" else "🔴"
         mensagem_inicio = (
             "🚀 **Rucoy Tracker iniciado**\n\n"
-            "👤 Personagem: **Bank Of Alan**\n"
+            "👤 Personagem: **Alan Virtue**\n"
             f"📡 Status atual: **{emoji} {status.upper()}**\n"
             "⏱ Verificação: **1 minuto**"
         )
@@ -92,7 +92,7 @@ try:
                 # atualiza antes de enviar para evitar duplicação
                 ultimo_evento = "online"
                 ultimo_status = status
-                enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
+                enviar(f"🟢 Alan Virtue logou às {hora_atual.strftime('%H:%M:%S')}")
 
             elif status == "offline" and hora_login:
                 tempo = hora_atual - hora_login
@@ -102,7 +102,7 @@ try:
                 ultimo_evento = "offline"
                 ultimo_status = status
                 enviar(
-                    f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+                    f"🔴 Alan Virtue deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
                     f"⏱ Tempo online: {horas}h {minutos}m"
                 )
 
@@ -112,5 +112,6 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
 
