@@ -62,27 +62,28 @@ try:
 
         # só envia mensagem se status mudou
         if status != ultimo_status and status is not None:
-            hora_atual = datetime.now()
+    hora_atual = datetime.now()
 
-            if status == "online":
-                hora_login = hora_atual
-                enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
+    # atualiza o status imediatamente
+    ultimo_status = status
 
-            elif status == "offline" and hora_login:
-                tempo = hora_atual - hora_login
-                horas = tempo.seconds // 3600
-                minutos = (tempo.seconds % 3600) // 60
-                enviar(
-                    f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
-                    f"⏱ Tempo online: {horas}h {minutos}m"
-                )
+    if status == "online":
+        hora_login = hora_atual
+        enviar(f"🟢 Bank Of Alan logou às {hora_atual.strftime('%H:%M:%S')}")
 
-            # atualiza status depois de enviar mensagem
-            ultimo_status = status
+    elif status == "offline" and hora_login:
+        tempo = hora_atual - hora_login
+        horas = tempo.seconds // 3600
+        minutos = (tempo.seconds % 3600) // 60
+        enviar(
+            f"🔴 Bank Of Alan deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+            f"⏱ Tempo online: {horas}h {minutos}m"
+        )
 
         time.sleep(60)
 
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
