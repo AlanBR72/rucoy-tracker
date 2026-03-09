@@ -5,7 +5,6 @@ from datetime import datetime
 
 url = "https://www.rucoyonline.com/characters/Bank%20Of%20Alan"
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
-s
 ultimo_status = None
 hora_login = None
 
