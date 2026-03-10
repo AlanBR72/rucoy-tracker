@@ -113,36 +113,44 @@ try:
 
         status = verificar_status()
         print("Status:", status)
+        
+# =========================
+# CONFIGURAÇÃO DE RECONEXÃO
+# =========================
 
-        if status is not None and status != ultimo_status and status != ultimo_evento:
-            if status == "online":
-                hora_login = agora
-                enviar(f"🟢 Alan Virtue logou às {hora_formatada}")
-                salvar_historico({"evento": "login", "hora": hora_formatada})
-                ultimo_evento = "online"
+TEMPO_RECONEXAO = 180  # segundos (3 minutos)
+ultimo_logout = None    # hora do último logout
 
-            elif status == "offline" and hora_login:
-                tempo = agora - hora_login
-                horas = tempo.seconds // 3600
-                minutos = (tempo.seconds % 3600) // 60
-                enviar(
-                    f"🔴 Alan Virtue deslogou às {hora_formatada}\n"
-                    f"⏱ Tempo online: {horas}h {minutos}m"
-                )
-                salvar_historico({
-                    "evento": "logout",
-                    "hora": hora_formatada,
-                    "tempo_online_h": horas,
-                    "tempo_online_m": minutos
-                })
-                ultimo_evento = "offline"
+if status is not None and status != ultimo_status and status != ultimo_evento:
+    hora_atual = datetime.now()
+    
+    if status == "online":
+        # se logou rápido após um logout recente
+        if ultimo_logout and (hora_atual - ultimo_logout).total_seconds() <= TEMPO_RECONEXAO:
+            enviar(f"🔁 Alan Virtue reconectou rapidamente! ({(hora_atual - ultimo_logout).seconds} segundos)")
+        else:
+            enviar(f"🟢 Alan Virtue logou às {hora_atual.strftime('%H:%M:%S')}")
+        
+        hora_login = hora_atual
+        ultimo_evento = "online"
+        ultimo_status = status
 
-            ultimo_status = status
+    elif status == "offline" and hora_login:
+        tempo = hora_atual - hora_login
+        horas = tempo.seconds // 3600
+        minutos = (tempo.seconds % 3600) // 60
+        enviar(
+            f"🔴 Alan Virtue deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
+            f"⏱ Tempo online: {horas}h {minutos}m"
+        )
+        ultimo_evento = "offline"
+        ultimo_status = status
+        ultimo_logout = hora_atual  # marca o logout
 
         # ------------------------
-        # envia resumo diário às 23:59
+        # envia resumo diário às 02:59
         # ------------------------
-        if agora.hour == 23 and agora.minute == 59:
+        if agora.hour == 01 and agora.minute == 59:
             if ultima_execucao_resumo != data_atual:
                 resumo_diario()
                 ultima_execucao_resumo = data_atual
@@ -152,3 +160,4 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
