@@ -148,16 +148,18 @@ if status is not None and status != ultimo_status and status != ultimo_evento:
         ultimo_logout = hora_atual  # marca o logout
 
         # ------------------------
-        # envia resumo diário às 02:59
+        # envia resumo diário às 02:00
         # ------------------------
-        if agora.hour == 01 and agora.minute == 59:
-            if ultima_execucao_resumo != data_atual:
-                resumo_diario()
-                ultima_execucao_resumo = data_atual
 
-        time.sleep(60)
+# verifica se são 02:00 e ainda não executou hoje
+if agora.hour == 2 and agora.minute == 0:
+    if ultima_execucao_resumo != agora.date():
+        resumo_diario()  # sua função de resumo
+        ultima_execucao_resumo = agora.date()
 
+time.sleep(60)
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
 
