@@ -98,9 +98,9 @@ try:
             emoji = "🟢" if status == "online" else "🔴"
             mensagem_inicio = (
                 "🚀 **_Rucoy Tracker iniciado_**\n\n"
-                "👤 **Personagem:** _Alan Virtue_\n"
-                f"📡 **Status atual:** _{emoji} {status.upper()}_\n"
-                "⏱ **Verificação:** _1 minuto_"
+                "👤 **Personagem: _Alan Virtue_**\n"
+                f"📡 **Status atual: _{emoji} {status.upper()}_**\n"
+                "⏱ **Verificação: _1 Minuto_**"
             )
             enviar(mensagem_inicio)
             mensagem_inicial_enviada = True
@@ -154,6 +154,7 @@ try:
         time.sleep(60)
 
 except KeyboardInterrupt:
-    enviar("🛑 Bot de monitoramento finalizado")
+    enviar("**🛑 Bot de monitoramento finalizado.**")
     print("Bot encerrado.")
+
 
