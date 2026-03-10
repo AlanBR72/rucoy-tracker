@@ -74,9 +74,9 @@ def resumo_diario():
     minutos = (total_segundos % 3600) // 60
 
     if total_segundos > 0:
-        enviar(f"📊 **Resumo diário de Alan Virtue**\n⏱ Total online: {horas}h {minutos}m")
+        enviar(f"📊 **Resumo diário de Alan Virtue**\n_⏱ Total online: {horas}h {minutos}m_")
     else:
-        enviar(f"📊 **Resumo diário de Alan Virtue**\n⏱ Nenhum tempo online registrado hoje.")
+        enviar(f"📊 **Resumo diário de Alan Virtue**\n_⏱ Nenhum tempo online registrado hoje._")
 
 # =========================
 # BLOCO PRINCIPAL
@@ -97,10 +97,10 @@ try:
         if not mensagem_inicial_enviada:
             emoji = "🟢" if status == "online" else "🔴"
             mensagem_inicio = (
-                "🚀 **Rucoy Tracker iniciado**\n\n"
-                "👤 Personagem: **Alan Virtue**\n"
-                f"📡 Status atual: **{emoji} {status.upper()}**\n"
-                "⏱ Verificação: **1 minuto**"
+                "🚀 **_Rucoy Tracker iniciado_**\n\n"
+                "👤 **Personagem:** _Alan Virtue_\n"
+                f"📡 **Status atual:** _{emoji} {status.upper()}_\n"
+                "⏱ **Verificação:** _1 minuto_"
             )
             enviar(mensagem_inicio)
             mensagem_inicial_enviada = True
@@ -115,9 +115,9 @@ try:
                 # evita enviar login na primeira verificação
                 if not primeira_verificacao:
                     if ultimo_logout and (hora_atual - ultimo_logout).total_seconds() <= TEMPO_RECONEXAO:
-                        enviar(f"🔁 Alan Virtue reconectou rapidamente! ({int((hora_atual - ultimo_logout).total_seconds())}s)")
+                        enviar(f"🔁 _Alan Virtue_ reconectou rapidamente! ({int((hora_atual - ultimo_logout).total_seconds())}s)")
                     else:
-                        enviar(f"🟢 Alan Virtue logou às {hora_formatada}")
+                        enviar(f"🟢 **Alan Virtue** _logou às {hora_formatada}_")
 
                 hora_login = hora_atual
                 ultimo_evento = "online"
@@ -128,7 +128,7 @@ try:
                 horas = tempo.seconds // 3600
                 minutos = (tempo.seconds % 3600) // 60
                 enviar(
-                    f"🔴 Alan Virtue deslogou às {hora_formatada}\n"
+                    f"🔴 **Alan Virtue** _deslogou às {hora_formatada}_\n"
                     f"⏱ Tempo online: {horas}h {minutos}m"
                 )
                 salvar_historico({
@@ -156,3 +156,4 @@ try:
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
+
