@@ -99,7 +99,7 @@ try:
             mensagem_inicio = (
                 "🚀 **_Rucoy Tracker iniciado_**\n\n"
                 "👤 **Personagem: _Alan Virtue_**\n"
-                f"📡 **Status atual: _{emoji} {status.upper()}_**\n"
+                f"📡 **Status atual: _{emoji} {status.capitalize()}_**\n"
                 "⏱ **Verificação: _1 Minuto_**"
             )
             enviar(mensagem_inicio)
@@ -156,5 +156,6 @@ try:
 except KeyboardInterrupt:
     enviar("**🛑 Bot de monitoramento finalizado.**")
     print("Bot encerrado.")
+
 
 
