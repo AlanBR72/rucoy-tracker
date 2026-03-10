@@ -2,31 +2,29 @@ import requests
 from bs4 import BeautifulSoup
 import time
 from datetime import datetime, timezone, timedelta
+import json
+import os
 
 # -----------------------
 # CONFIGURAÇÃO
 # -----------------------
-
 url = "https://www.rucoyonline.com/characters/Alan%20Virtue"
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
-ultimo_status = None      # status atual do site: "online" ou "offline"
-ultimo_evento = None      # último evento enviado ao Discord
-hora_login = None         # hora do login
+historico_file = "historico.json"
 
-# cria hora atual em UTC e aplica o fuso de -3 horas (Brasil)
-hora_atual = datetime.now(timezone.utc) + timedelta(hours=-3)
-hora_formatada = hora_atual.strftime("%H:%M:%S")
+ultimo_status = None
+ultimo_evento = None
+hora_login = None
 
 # -----------------------
-# FUNÇÃO DE ENVIO AO DISCORD
+# FUNÇÕES
 # -----------------------
-
 def enviar(msg):
     try:
         r = requests.post(webhook, json={"content": msg}, timeout=10)
         if r.status_code == 204:
             print("✅ Mensagem enviada ao Discord")
-        elif r.status_code == 429:  # rate-limit
+        elif r.status_code == 429:
             retry = r.json().get("retry_after", 5)
             print(f"⏳ Rate limit do Discord. Esperando {retry} segundos...")
             time.sleep(retry)
@@ -34,10 +32,6 @@ def enviar(msg):
             print("❌ Erro ao enviar mensagem:", r.status_code, r.text)
     except Exception as e:
         print("❌ Falha ao enviar mensagem:", e)
-
-# -----------------------
-# FUNÇÃO PARA VERIFICAR STATUS NO SITE
-# -----------------------
 
 def verificar_status():
     try:
@@ -49,22 +43,51 @@ def verificar_status():
         print("❌ Falha ao acessar o site:", e)
         return None
 
+def carregar_historico():
+    if os.path.exists(historico_file):
+        with open(historico_file, "r") as f:
+            return json.load(f)
+    return []
+
+def salvar_historico(evento):
+    historico = carregar_historico()
+    historico.append(evento)
+    with open(historico_file, "w") as f:
+        json.dump(historico, f, indent=2)
+
+def resumo_diario():
+    historico = carregar_historico()
+    hoje = (datetime.now(timezone.utc) + timedelta(hours=-3)).date()
+    total_segundos = 0
+
+    for evento in historico:
+        if "hora" in evento:
+            # converter hora de string para datetime do dia atual
+            hora_evento = datetime.strptime(evento["hora"], "%H:%M:%S").replace(
+                year=hoje.year, month=hoje.month, day=hoje.day
+            )
+            if evento["evento"] == "logout":
+                total_segundos += evento.get("tempo_online_h", 0) * 3600
+                total_segundos += evento.get("tempo_online_m", 0) * 60
+
+    horas = total_segundos // 3600
+    minutos = (total_segundos % 3600) // 60
+
+    if total_segundos > 0:
+        enviar(f"📊 **Resumo diário de Alan Virtue**\n⏱ Total online: {horas}h {minutos}m")
+    else:
+        enviar(f"📊 **Resumo diário de Alan Virtue**\n⏱ Nenhum tempo online registrado hoje.")
+
 # =========================
 # BLOCO PRINCIPAL
 # =========================
-
-# variável global para inicialização
 mensagem_inicial_enviada = False
-ultimo_status = None
-ultimo_evento = None
-hora_login = None
 
 try:
-    # pega status inicial
     status = verificar_status()
     ultimo_status = status
+    ultimo_evento = None
 
-    # envia a mensagem inicial apenas uma vez
     if not mensagem_inicial_enviada:
         emoji = "🟢" if status == "online" else "🔴"
         mensagem_inicio = (
@@ -77,52 +100,55 @@ try:
         mensagem_inicial_enviada = True
 
     if status == "online":
-        hora_login = datetime.now()
+        hora_login = datetime.now(timezone.utc) + timedelta(hours=-3)
 
-    # loop principal 24h
+    # controle para resumo diário (executar 1 vez por dia)
+    ultima_execucao_resumo = None
+
     while True:
-        agora = datetime.now().strftime("%H:%M:%S")
-        print(f"[{agora}] Verificando perfil...")
+        agora = datetime.now(timezone.utc) + timedelta(hours=-3)
+        hora_formatada = agora.strftime("%H:%M:%S")
+        data_atual = agora.date()
+        print(f"[{hora_formatada}] Verificando perfil...")
 
         status = verificar_status()
         print("Status:", status)
 
-        # envia mensagem somente se o status mudou e ainda não enviamos
         if status is not None and status != ultimo_status and status != ultimo_evento:
-            
-            from datetime import datetime, timedelta
-            hora_atual = datetime.utcnow() - timedelta(hours=3)
-            hora_formatada = hora_atual.strftime("%H:%M:%S")
-
             if status == "online":
-                hora_login = hora_atual
-                # atualiza antes de enviar para evitar duplicação
-                ultimo_evento = "online"
-                ultimo_status = status
+                hora_login = agora
                 enviar(f"🟢 Alan Virtue logou às {hora_formatada}")
+                salvar_historico({"evento": "login", "hora": hora_formatada})
+                ultimo_evento = "online"
 
             elif status == "offline" and hora_login:
-                tempo = hora_atual - hora_login
+                tempo = agora - hora_login
                 horas = tempo.seconds // 3600
                 minutos = (tempo.seconds % 3600) // 60
-                # atualiza antes de enviar
-                ultimo_evento = "offline"
-                ultimo_status = status
                 enviar(
                     f"🔴 Alan Virtue deslogou às {hora_formatada}\n"
                     f"⏱ Tempo online: {horas}h {minutos}m"
                 )
+                salvar_historico({
+                    "evento": "logout",
+                    "hora": hora_formatada,
+                    "tempo_online_h": horas,
+                    "tempo_online_m": minutos
+                })
+                ultimo_evento = "offline"
 
-        # espera sempre fora do if
+            ultimo_status = status
+
+        # ------------------------
+        # envia resumo diário às 23:59
+        # ------------------------
+        if agora.hour == 23 and agora.minute == 59:
+            if ultima_execucao_resumo != data_atual:
+                resumo_diario()
+                ultima_execucao_resumo = data_atual
+
         time.sleep(60)
 
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
-
-
-
-
-
-
-
