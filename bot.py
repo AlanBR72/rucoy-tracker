@@ -12,9 +12,14 @@ url = "https://www.rucoyonline.com/characters/Alan%20Virtue"
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
 historico_file = "historico.json"
 
+TEMPO_RECONEXAO = 180  # segundos (3 minutos)
+
 ultimo_status = None
 ultimo_evento = None
+ultimo_logout = None
 hora_login = None
+mensagem_inicial_enviada = False
+ultima_execucao_resumo = None
 
 # -----------------------
 # FUNÇÕES
@@ -61,14 +66,9 @@ def resumo_diario():
     total_segundos = 0
 
     for evento in historico:
-        if "hora" in evento:
-            # converter hora de string para datetime do dia atual
-            hora_evento = datetime.strptime(evento["hora"], "%H:%M:%S").replace(
-                year=hoje.year, month=hoje.month, day=hoje.day
-            )
-            if evento["evento"] == "logout":
-                total_segundos += evento.get("tempo_online_h", 0) * 3600
-                total_segundos += evento.get("tempo_online_m", 0) * 60
+        if "tempo_online_h" in evento and "tempo_online_m" in evento:
+            total_segundos += evento["tempo_online_h"] * 3600
+            total_segundos += evento["tempo_online_m"] * 60
 
     horas = total_segundos // 3600
     minutos = (total_segundos % 3600) // 60
@@ -81,30 +81,7 @@ def resumo_diario():
 # =========================
 # BLOCO PRINCIPAL
 # =========================
-mensagem_inicial_enviada = False
-
 try:
-    status = verificar_status()
-    ultimo_status = status
-    ultimo_evento = None
-
-    if not mensagem_inicial_enviada:
-        emoji = "🟢" if status == "online" else "🔴"
-        mensagem_inicio = (
-            "🚀 **Rucoy Tracker iniciado**\n\n"
-            "👤 Personagem: **Alan Virtue**\n"
-            f"📡 Status atual: **{emoji} {status.upper()}**\n"
-            "⏱ Verificação: **1 minuto**"
-        )
-        enviar(mensagem_inicio)
-        mensagem_inicial_enviada = True
-
-    if status == "online":
-        hora_login = datetime.now(timezone.utc) + timedelta(hours=-3)
-
-    # controle para resumo diário (executar 1 vez por dia)
-    ultima_execucao_resumo = None
-
     while True:
         agora = datetime.now(timezone.utc) + timedelta(hours=-3)
         hora_formatada = agora.strftime("%H:%M:%S")
@@ -113,53 +90,65 @@ try:
 
         status = verificar_status()
         print("Status:", status)
-        
-# =========================
-# CONFIGURAÇÃO DE RECONEXÃO
-# =========================
-
-TEMPO_RECONEXAO = 180  # segundos (3 minutos)
-ultimo_logout = None    # hora do último logout
-
-if status is not None and status != ultimo_status and status != ultimo_evento:
-    hora_atual = datetime.now()
-    
-    if status == "online":
-        # se logou rápido após um logout recente
-        if ultimo_logout and (hora_atual - ultimo_logout).total_seconds() <= TEMPO_RECONEXAO:
-            enviar(f"🔁 Alan Virtue reconectou rapidamente! ({(hora_atual - ultimo_logout).seconds} segundos)")
-        else:
-            enviar(f"🟢 Alan Virtue logou às {hora_atual.strftime('%H:%M:%S')}")
-        
-        hora_login = hora_atual
-        ultimo_evento = "online"
-        ultimo_status = status
-
-    elif status == "offline" and hora_login:
-        tempo = hora_atual - hora_login
-        horas = tempo.seconds // 3600
-        minutos = (tempo.seconds % 3600) // 60
-        enviar(
-            f"🔴 Alan Virtue deslogou às {hora_atual.strftime('%H:%M:%S')}\n"
-            f"⏱ Tempo online: {horas}h {minutos}m"
-        )
-        ultimo_evento = "offline"
-        ultimo_status = status
-        ultimo_logout = hora_atual  # marca o logout
 
         # ------------------------
-        # envia resumo diário às 02:00
+        # Mensagem inicial única
         # ------------------------
+        if not mensagem_inicial_enviada:
+            emoji = "🟢" if status == "online" else "🔴"
+            mensagem_inicio = (
+                "🚀 **Rucoy Tracker iniciado**\n\n"
+                "👤 Personagem: **Alan Virtue**\n"
+                f"📡 Status atual: **{emoji} {status.upper()}**\n"
+                "⏱ Verificação: **1 minuto**"
+            )
+            enviar(mensagem_inicio)
+            mensagem_inicial_enviada = True
 
-# verifica se são 02:00 e ainda não executou hoje
-if agora.hour == 2 and agora.minute == 0:
-    if ultima_execucao_resumo != agora.date():
-        resumo_diario()  # sua função de resumo
-        ultima_execucao_resumo = agora.date()
+        # ------------------------
+        # Login/Logout e reconexão rápida
+        # ------------------------
+        if status is not None and status != ultimo_status and status != ultimo_evento:
+            hora_atual = agora
 
-time.sleep(60)
+            if status == "online":
+                if ultimo_logout and (hora_atual - ultimo_logout).total_seconds() <= TEMPO_RECONEXAO:
+                    enviar(f"🔁 Alan Virtue reconectou rapidamente! ({int((hora_atual - ultimo_logout).total_seconds())} segundos)")
+                else:
+                    enviar(f"🟢 Alan Virtue logou às {hora_formatada}")
+
+                hora_login = hora_atual
+                ultimo_evento = "online"
+                ultimo_status = status
+
+            elif status == "offline" and hora_login:
+                tempo = hora_atual - hora_login
+                horas = tempo.seconds // 3600
+                minutos = (tempo.seconds % 3600) // 60
+                enviar(
+                    f"🔴 Alan Virtue deslogou às {hora_formatada}\n"
+                    f"⏱ Tempo online: {horas}h {minutos}m"
+                )
+                salvar_historico({
+                    "evento": "logout",
+                    "hora": hora_formatada,
+                    "tempo_online_h": horas,
+                    "tempo_online_m": minutos
+                })
+                ultimo_evento = "offline"
+                ultimo_status = status
+                ultimo_logout = hora_atual
+
+        # ------------------------
+        # Resumo diário às 02:00
+        # ------------------------
+        if agora.hour == 2 and agora.minute == 0:
+            if ultima_execucao_resumo != data_atual:
+                resumo_diario()
+                ultima_execucao_resumo = data_atual
+
+        time.sleep(60)
+
 except KeyboardInterrupt:
     enviar("🛑 Bot de monitoramento finalizado")
     print("Bot encerrado.")
-
-
