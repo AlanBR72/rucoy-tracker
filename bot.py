@@ -11,7 +11,6 @@ import os
 url = "https://www.rucoyonline.com/characters/Alan%20Virtue"
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
 historico_file = "historico.json"
-
 TEMPO_RECONEXAO = 180  # segundos (3 minutos)
 
 ultimo_status = None
@@ -20,6 +19,7 @@ ultimo_logout = None
 hora_login = None
 mensagem_inicial_enviada = False
 ultima_execucao_resumo = None
+primeira_verificacao = True  # nova flag para primeira rodada
 
 # -----------------------
 # FUNÇÕES
@@ -112,10 +112,12 @@ try:
             hora_atual = agora
 
             if status == "online":
-                if ultimo_logout and (hora_atual - ultimo_logout).total_seconds() <= TEMPO_RECONEXAO:
-                    enviar(f"🔁 Alan Virtue reconectou rapidamente! ({int((hora_atual - ultimo_logout).total_seconds())} segundos)")
-                else:
-                    enviar(f"🟢 Alan Virtue logou às {hora_formatada}")
+                # evita enviar login na primeira verificação
+                if not primeira_verificacao:
+                    if ultimo_logout and (hora_atual - ultimo_logout).total_seconds() <= TEMPO_RECONEXAO:
+                        enviar(f"🔁 Alan Virtue reconectou rapidamente! ({int((hora_atual - ultimo_logout).total_seconds())}s)")
+                    else:
+                        enviar(f"🟢 Alan Virtue logou às {hora_formatada}")
 
                 hora_login = hora_atual
                 ultimo_evento = "online"
@@ -138,6 +140,8 @@ try:
                 ultimo_evento = "offline"
                 ultimo_status = status
                 ultimo_logout = hora_atual
+
+        primeira_verificacao = False  # primeira rodada concluída
 
         # ------------------------
         # Resumo diário às 02:00
