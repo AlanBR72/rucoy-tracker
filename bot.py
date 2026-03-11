@@ -68,7 +68,7 @@ def enviar(msg):
 
     try:
         requests.post(webhook,json={"content":msg})
-        print("📨",msg)
+        print("⚠️ Bot reiniciado ou reconectado")
     except:
         print("Erro ao enviar mensagem")
 
@@ -418,6 +418,7 @@ while True:
         enviar(f"🚨 **Erro no bot**\n```{erro}```")
 
         time.sleep(60)
+
 
 
 
