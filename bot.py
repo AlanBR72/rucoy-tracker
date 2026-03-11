@@ -68,7 +68,6 @@ def enviar(msg):
 
     try:
         requests.post(webhook,json={"content":msg})
-        print("⚠️ Bot reiniciado ou reconectado")
     except:
         print("Erro ao enviar mensagem")
 
@@ -277,7 +276,7 @@ def painel_offline():
 # INICIO
 # -----------------------
 
-print("🚀 Bot iniciado")
+print("⚠️ Bot reiniciado ou reconectado")
 
 enviar("**_⚠️ Bot reiniciado ou reconectado_**")
 
@@ -329,6 +328,8 @@ while True:
 
             mensagem_painel_id = enviar_e_pegar_id(painel_online())
 
+            ultimo_update_painel = agora
+
             print("🟢 Painel ONLINE criado")
 
 
@@ -370,7 +371,9 @@ while True:
 
             if not reconectou:
 
-                enviar(painel_offline())
+                mensagem_painel_id = enviar_e_pegar_id(painel_offline())
+
+                ultimo_update_painel = agora
 
                 tempo = hora_logout - hora_login
 
@@ -418,6 +421,7 @@ while True:
         enviar(f"🚨 **Erro no bot**\n```{erro}```")
 
         time.sleep(60)
+
 
 
 
