@@ -183,12 +183,196 @@ def resetar_estado():
 
         print("♻️ Estado do bot resetado")
 
-    except Exception as e:
-        print("⚠️ Erro ao resetar estado:", e)
+historico_file = "historico.json"
+estado_file = "estado_bot.json"
+
+TEMPO_RECONEXAO = 180
+
+ultimo_status = None
+ultimo_evento = None
+ultimo_logout = None
+hora_login = None
+
+mensagem_inicial_enviada = False
+ultima_execucao_resumo = None
+primeira_verificacao = True
 
 
 # -----------------------
-# CARREGAR ESTADO AO INICIAR
+# DISCORD
+# -----------------------
+def enviar(msg):
+    try:
+        r = requests.post(webhook, json={"content": msg}, timeout=10)
+
+        if r.status_code == 204:
+            print("✅ Mensagem enviada")
+
+        elif r.status_code == 429:
+            retry = r.json().get("retry_after", 5)
+            print(f"⏳ Rate limit {retry}s")
+            time.sleep(retry)
+
+        else:
+            print("❌ Discord erro:", r.status_code)
+
+    except Exception as e:
+        print("Erro webhook:", e)
+
+
+# -----------------------
+# VERIFICAR STATUS
+# -----------------------
+def verificar_status():
+    try:
+        r = requests.get(url, timeout=10)
+        soup = BeautifulSoup(r.text, "html.parser")
+        texto = soup.text.lower()
+
+        return "online" if "currently online" in texto else "offline"
+
+    except Exception as e:
+        print("Erro site:", e)
+        return None
+
+
+# -----------------------
+# HISTÓRICO
+# -----------------------
+def carregar_historico():
+
+    if not os.path.exists(historico_file):
+        return []
+
+    try:
+        with open(historico_file, "r") as f:
+            conteudo = f.read().strip()
+
+            if not conteudo:
+                return []
+
+            return json.loads(conteudo)
+
+    except:
+        return []
+
+
+def salvar_historico(evento):
+
+    historico = carregar_historico()
+    historico.append(evento)
+
+    temp = historico_file + ".tmp"
+
+    with open(temp, "w") as f:
+        json.dump(historico, f, indent=2)
+
+    os.replace(temp, historico_file)
+
+
+def limpar_historico():
+
+    try:
+        if os.path.exists(historico_file):
+            os.remove(historico_file)
+            print("🧹 Histórico limpo")
+
+    except Exception as e:
+        print("Erro limpar histórico:", e)
+
+
+# -----------------------
+# ESTADO BOT
+# -----------------------
+def carregar_estado():
+
+    if not os.path.exists(estado_file):
+        return {}
+
+    try:
+        with open(estado_file, "r") as f:
+
+            conteudo = f.read().strip()
+
+            if not conteudo:
+                return {}
+
+            return json.loads(conteudo)
+
+    except:
+        return {}
+
+
+def salvar_estado():
+
+    estado = {
+        "ultimo_status": ultimo_status,
+        "ultimo_evento": ultimo_evento,
+        "hora_login": hora_login.strftime("%H:%M:%S") if hora_login else None,
+        "mensagem_inicial_enviada": mensagem_inicial_enviada
+    }
+
+    temp = estado_file + ".tmp"
+
+    with open(temp, "w") as f:
+        json.dump(estado, f, indent=2)
+
+    os.replace(temp, estado_file)
+
+
+def resetar_estado():
+
+    global ultimo_evento, ultimo_logout
+
+    try:
+
+        ultimo_evento = None
+        ultimo_logout = None
+
+        salvar_estado()
+
+        print("♻️ Estado resetado")
+
+    except Exception as e:
+        print("Erro reset estado:", e)
+
+
+# -----------------------
+# RESUMO DIÁRIO
+# -----------------------
+def resumo_diario():
+
+    historico = carregar_historico()
+
+    total_segundos = 0
+
+    for evento in historico:
+
+        if "tempo_online_h" in evento:
+
+            total_segundos += evento["tempo_online_h"] * 3600
+            total_segundos += evento["tempo_online_m"] * 60
+
+    horas = total_segundos // 3600
+    minutos = (total_segundos % 3600) // 60
+
+    if total_segundos > 0:
+
+        enviar(
+            f"📊 **Resumo diário de Alan Virtue**\n"
+            f"_⏱ Total online: {horas}h {minutos}m_"
+        )
+
+    else:
+
+        enviar(
+            "📊 **Resumo diário de Alan Virtue**\n"
+            "_⏱ Nenhum tempo online registrado hoje._"
+        )
+
+
+# -----------------------
+# CARREGAR ESTADO
 # -----------------------
 estado = carregar_estado()
 
@@ -199,11 +383,17 @@ mensagem_inicial_enviada = estado.get("mensagem_inicial_enviada", False)
 hora_login_str = estado.get("hora_login")
 
 if hora_login_str:
+
     try:
+
         agora = datetime.now(timezone.utc) + timedelta(hours=-3)
+
         h, m, s = map(int, hora_login_str.split(":"))
+
         hora_login = agora.replace(hour=h, minute=m, second=s)
+
     except:
+
         hora_login = None
 
 
@@ -254,8 +444,7 @@ try:
                     if ultimo_logout and (hora_atual - ultimo_logout).total_seconds() <= TEMPO_RECONEXAO:
 
                         enviar(
-                            f"🔁 _Alan Virtue_ reconectou rapidamente "
-                            f"({int((hora_atual - ultimo_logout).total_seconds())}s)"
+                            f"🔁 _Alan Virtue reconectou rapidamente ({int((hora_atual - ultimo_logout).total_seconds())}s)_"
                         )
 
                     else:
@@ -301,22 +490,21 @@ try:
         # ------------------------
         # RESUMO DIÁRIO
         # ------------------------
-        
         if agora.hour == 2 and agora.minute <= 1:
 
-    if ultima_execucao_resumo != data_atual:
+            if ultima_execucao_resumo != data_atual:
 
-        resumo_diario()
+                resumo_diario()
 
-        limpar_historico()
-        resetar_estado()
+                limpar_historico()
+                resetar_estado()
 
-        enviar(
-            "📅 **Novo dia iniciado para Alan Virtue**\n"
-            "⏱ _Monitoramento reiniciado_"
-        )
+                enviar(
+                    "📅 **Novo dia iniciado para Alan Virtue**\n"
+                    "⏱ _Monitoramento reiniciado_"
+                )
 
-        ultima_execucao_resumo = data_atual
+                ultima_execucao_resumo = data_atual
 
         time.sleep(60)
 
@@ -325,6 +513,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 **Bot de monitoramento finalizado.**")
     print("Bot encerrado.")
+
 
 
 
