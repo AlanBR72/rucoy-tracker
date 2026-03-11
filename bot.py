@@ -363,10 +363,14 @@ while True:
 
                     print("🔁 Reconexão detectada")
 
-                    reconectou = True
-                    ultimo_status = "online"
+                    # atualizar painel atual
+                if mensagem_painel_id:
+                editar(mensagem_painel_id, painel_online())
 
-                    break
+                    ultimo_status = "online"
+                    reconectou = True
+
+break
 
 
             if not reconectou:
@@ -421,6 +425,7 @@ while True:
         enviar(f"🚨 **Erro no bot**\n```{erro}```")
 
         time.sleep(60)
+
 
 
 
