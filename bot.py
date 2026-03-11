@@ -31,7 +31,7 @@ BRASIL = pytz.timezone("America/Sao_Paulo")
 
 ultimo_status = None
 hora_login = None
-datetime.now(BRASIL)ogout = None
+datetime.now(BRASIL)logout = None
 
 mensagem_painel_id = None
 
@@ -418,4 +418,5 @@ while True:
         enviar(f"🚨 **Erro no bot**\n```{erro}```")
 
         time.sleep(60)
+
 
