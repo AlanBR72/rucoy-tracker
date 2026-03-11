@@ -160,6 +160,32 @@ def resumo_diario():
             "_⏱ Nenhum tempo online registrado hoje._"
         )
 
+        # -----------------------
+        # LIMPAR E RESETAR DATABASES
+        # -----------------------
+        def limpar_historico():
+    try:
+        if os.path.exists(historico_file):
+            os.remove(historico_file)
+            print("🧹 Histórico diário limpo")
+    except Exception as e:
+        print("⚠️ Erro ao limpar histórico:", e)
+
+
+def resetar_estado():
+    global ultimo_evento, ultimo_logout
+
+    try:
+        ultimo_evento = None
+        ultimo_logout = None
+
+        salvar_estado()
+
+        print("♻️ Estado do bot resetado")
+
+    except Exception as e:
+        print("⚠️ Erro ao resetar estado:", e)
+
 
 # -----------------------
 # CARREGAR ESTADO AO INICIAR
@@ -275,12 +301,22 @@ try:
         # ------------------------
         # RESUMO DIÁRIO
         # ------------------------
-        if agora.hour == 2 and agora.minute == 0:
+        
+        if agora.hour == 2 and agora.minute <= 1:
 
-            if ultima_execucao_resumo != data_atual:
+    if ultima_execucao_resumo != data_atual:
 
-                resumo_diario()
-                ultima_execucao_resumo = data_atual
+        resumo_diario()
+
+        limpar_historico()
+        resetar_estado()
+
+        enviar(
+            "📅 **Novo dia iniciado para Alan Virtue**\n"
+            "⏱ _Monitoramento reiniciado_"
+        )
+
+        ultima_execucao_resumo = data_atual
 
         time.sleep(60)
 
@@ -289,6 +325,7 @@ except KeyboardInterrupt:
 
     enviar("🛑 **Bot de monitoramento finalizado.**")
     print("Bot encerrado.")
+
 
 
 
