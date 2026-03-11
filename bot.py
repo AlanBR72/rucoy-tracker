@@ -421,7 +421,10 @@ while True:
 
         enviar(f"🚨 **Erro no bot**\n```{erro}```")
 
+        salvar_estado()
+
         time.sleep(60)
+
 
 
 
