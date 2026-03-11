@@ -1,114 +1,129 @@
 import requests
 from bs4 import BeautifulSoup
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 import json
 import os
+import traceback
 
 # -----------------------
-# CONFIGURAÇÃO
+# CONFIG
 # -----------------------
+
+CHAR_NAME = "Alan Virtue"
 
 url = "https://www.rucoyonline.com/characters/Alan%20Virtue"
+
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
 
 historico_file = "historico.json"
 estado_file = "estado_bot.json"
 
 TEMPO_RECONEXAO = 180
-INTERVALO_VERIFICACAO = 60
-INTERVALO_UPDATE = 600
-
-# separar webhook
-partes = webhook.split("/")
-WEBHOOK_ID = partes[-2]
-WEBHOOK_TOKEN = partes[-1]
+TEMPO_ATUALIZACAO_PAINEL = 300
 
 # -----------------------
-# ESTADO
+# VARIÁVEIS
 # -----------------------
 
 ultimo_status = None
 hora_login = None
-ultimo_logout = None
-reconexoes = []
-message_id = None
+hora_logout = None
 
-ultimo_update = None
-primeira_verificacao = True
-ultima_execucao_resumo = None
+mensagem_painel_id = None
+
+reconexoes = []
+reconexoes_dia = 0
+
+ultimo_update_painel = None
+
+# -----------------------
+# JSON
+# -----------------------
+
+def carregar_json(file):
+
+    if not os.path.exists(file):
+        return {}
+
+    try:
+        with open(file,"r") as f:
+            return json.load(f)
+    except:
+        return {}
+
+def salvar_json(file,data):
+
+    with open(file,"w") as f:
+        json.dump(data,f,indent=2)
 
 # -----------------------
 # DISCORD
 # -----------------------
 
 def enviar(msg):
+
     try:
-        requests.post(webhook, json={"content": msg}, timeout=10)
+        requests.post(webhook,json={"content":msg})
+        print("📨",msg)
     except:
-        pass
+        print("Erro ao enviar mensagem")
 
-
-def criar_painel(msg):
-    global message_id
-
-    try:
-        r = requests.post(
-            webhook + "?wait=true",
-            json={"content": msg},
-            timeout=10
-        )
-
-        if r.status_code == 200:
-            data = r.json()
-            message_id = data["id"]
-            salvar_estado()
-            print("📩 Painel criado")
-
-    except Exception as e:
-        print("Erro criar painel:", e)
-
-
-def editar_painel(msg):
-
-    if not message_id:
-        criar_painel(msg)
-        return
+def enviar_e_pegar_id(msg):
 
     try:
 
-        url_edit = f"https://discord.com/api/webhooks/{WEBHOOK_ID}/{WEBHOOK_TOKEN}/messages/{message_id}"
+        r = requests.post(webhook+"?wait=true",json={"content":msg})
 
-        r = requests.patch(
-            url_edit,
-            json={"content": msg},
-            timeout=10
-        )
-
-        if r.status_code == 200:
-            print("✏️ Painel atualizado")
+        if r.status_code in [200,201]:
+            return r.json()["id"]
 
     except Exception as e:
-        print("Erro editar:", e)
 
+        print("⚠️ Erro Discord:",e)
+
+    return None
+
+def editar(msg_id,msg):
+
+    try:
+
+        requests.patch(webhook+"/messages/"+msg_id,json={"content":msg})
+
+        print("🔄 Painel atualizado")
+
+    except Exception as e:
+
+        print("Erro editar:",e)
 
 # -----------------------
-# STATUS DO SITE
+# STATUS SITE
 # -----------------------
 
 def verificar_status():
 
     try:
-        r = requests.get(url, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
+
+        r = requests.get(url,timeout=10)
+
+        soup = BeautifulSoup(r.text,"html.parser")
+
         texto = soup.text.lower()
 
-        return "online" if "currently online" in texto else "offline"
+        if "currently online" in texto:
+            return "online"
+
+        return "offline"
 
     except Exception as e:
-        print("Erro site:", e)
-        return None
 
+        erro = f"⚠️ Erro ao acessar site: {e}"
+
+        print(erro)
+
+        enviar(erro)
+
+        return None
 
 # -----------------------
 # HISTÓRICO
@@ -120,26 +135,19 @@ def carregar_historico():
         return []
 
     try:
-        with open(historico_file, "r") as f:
+        with open(historico_file,"r") as f:
             return json.load(f)
     except:
         return []
 
-
 def salvar_historico(evento):
 
-    hist = carregar_historico()
-    hist.append(evento)
+    historico = carregar_historico()
 
-    with open(historico_file, "w") as f:
-        json.dump(hist, f, indent=2)
+    historico.append(evento)
 
-
-def limpar_historico():
-
-    if os.path.exists(historico_file):
-        os.remove(historico_file)
-
+    with open(historico_file,"w") as f:
+        json.dump(historico,f,indent=2)
 
 # -----------------------
 # ESTADO BOT
@@ -147,52 +155,32 @@ def limpar_historico():
 
 def salvar_estado():
 
-    estado = {
-        "ultimo_status": ultimo_status,
-        "hora_login": hora_login.isoformat() if hora_login else None,
-        "ultimo_logout": ultimo_logout.isoformat() if ultimo_logout else None,
-        "reconexoes": reconexoes,
-        "message_id": message_id
+    data = {
+
+        "ultimo_status":ultimo_status,
+        "hora_login":str(hora_login) if hora_login else None,
+        "hora_logout":str(hora_logout) if hora_logout else None,
+        "painel_id":mensagem_painel_id
+
     }
 
-    with open(estado_file, "w") as f:
-        json.dump(estado, f, indent=2)
-
+    salvar_json(estado_file,data)
 
 def carregar_estado():
 
-    global ultimo_status, hora_login, ultimo_logout, reconexoes, message_id
+    global ultimo_status,hora_login,hora_logout,mensagem_painel_id
 
-    if not os.path.exists(estado_file):
-        return
+    data = carregar_json(estado_file)
 
-    try:
+    ultimo_status = data.get("ultimo_status")
 
-        with open(estado_file, "r") as f:
-            estado = json.load(f)
+    if data.get("hora_login"):
+        hora_login = datetime.fromisoformat(data["hora_login"])
 
-        ultimo_status = estado.get("ultimo_status")
+    if data.get("hora_logout"):
+        hora_logout = datetime.fromisoformat(data["hora_logout"])
 
-        if estado.get("hora_login"):
-            hora_login = datetime.fromisoformat(estado["hora_login"])
-
-        if estado.get("ultimo_logout"):
-            ultimo_logout = datetime.fromisoformat(estado["ultimo_logout"])
-
-        reconexoes = estado.get("reconexoes", [])
-        message_id = estado.get("message_id")
-
-        print("📂 Estado restaurado")
-
-    except Exception as e:
-        print("Erro estado:", e)
-
-
-def limpar_estado():
-
-    if os.path.exists(estado_file):
-        os.remove(estado_file)
-
+    mensagem_painel_id = data.get("painel_id")
 
 # -----------------------
 # RESUMO DIÁRIO
@@ -200,174 +188,230 @@ def limpar_estado():
 
 def resumo_diario():
 
+    global reconexoes_dia
+
     historico = carregar_historico()
 
-    total_segundos = 0
+    total_online = 0
     sessoes = len(historico)
 
-    for evento in historico:
-        total_segundos += evento["tempo_online_h"] * 3600
-        total_segundos += evento["tempo_online_m"] * 60
+    for e in historico:
 
-    horas_online = total_segundos // 3600
-    minutos_online = (total_segundos % 3600) // 60
+        total_online += e["tempo_online_h"]*3600
+        total_online += e["tempo_online_m"]*60
 
-    segundos_dia = 24 * 3600
-    offline_segundos = segundos_dia - total_segundos
+    horas_online = total_online//3600
+    minutos_online = (total_online%3600)//60
 
-    if offline_segundos < 0:
-        offline_segundos = 0
+    total_dia = 86400
 
-    horas_off = offline_segundos // 3600
-    minutos_off = (offline_segundos % 3600) // 60
+    offline = total_dia-total_online
 
-    recon_count = len(reconexoes)
+    horas_off = offline//3600
+    minutos_off = (offline%3600)//60
 
     enviar(
-        "📊 **Resumo diário — Alan Virtue**\n\n"
-        f"⏱ **Tempo online:** _{horas_online}h {minutos_online}m_\n"
-        f"🔌 **Sessões:** _{sessoes}_\n"
-        f"🔁 **Reconexões:** _{recon_count}_\n"
-        f"📉 **Tempo offline:** _{horas_off}h {minutos_off}m_"
-    )
 
+f"""📊 **_Resumo diário — {CHAR_NAME}_**
+
+⏱ **Tempo online:** _{horas_online}h {minutos_online}m_
+🔌 **Sessões:** _{sessoes}_
+🔁 **Reconexões:** _{reconexoes_dia}_
+📉 **Tempo offline:** _{horas_off}h {minutos_off}m_"""
+)
+
+    salvar_json(historico_file,[])
+    salvar_json(estado_file,{})
+    reconexoes_dia = 0
+
+    enviar("_🧹 Dados do dia limpos com sucesso_")
+
+    print("🧹 Histórico e estado resetados")
 
 # -----------------------
-# INICIAR
+# PAINEL ONLINE
 # -----------------------
 
-carregar_estado()
+def painel_online():
+
+    tempo = datetime.now() - hora_login
+
+    h = tempo.seconds//3600
+    m = (tempo.seconds%3600)//60
+
+    recon_text=""
+
+    if reconexoes:
+
+        recon_text="\n".join(reconexoes)
+
+    return f"""📊 **_{CHAR_NAME} Tracker_**
+
+🟢 **Status:** _Online_
+**🕒 Logado às:** _{hora_login.strftime('%H:%M')}_
+⏱ **Sessão atual:** _{h}h {m}m_
+
+{recon_text}"""
+
+# -----------------------
+# PAINEL OFFLINE
+# -----------------------
+
+def painel_offline():
+
+    tempo = hora_logout - hora_login
+
+    h = tempo.seconds//3600
+    m = (tempo.seconds%3600)//60
+
+    return f"""📊 **_{CHAR_NAME} Tracker_**
+
+🔴 **Status:** _Offline_
+**🕒 Deslogou às:** _{hora_logout.strftime('%H:%M')}_
+⏱ **Sessão durou:** _{h}h {m}m_"""
+
+# -----------------------
+# INICIO
+# -----------------------
 
 print("🚀 Bot iniciado")
+
+enviar("**_⚠️ Bot reiniciado ou reconectado_**")
+
+carregar_estado()
 
 # -----------------------
 # LOOP
 # -----------------------
 
-try:
+while True:
 
-    while True:
+    try:
 
-        agora = datetime.now(timezone.utc) + timedelta(hours=-3)
+        agora = datetime.now()
 
-        hora_formatada = agora.strftime("%H:%M:%S")
-        data_atual = agora.date()
-
-        print(f"[{hora_formatada}] Verificando perfil")
+        print(f"[{agora.strftime('%H:%M:%S')}] verificando...")
 
         status = verificar_status()
 
-        print("Status:", status)
+        if status is None:
 
-        # LOGIN
+            time.sleep(60)
+
+            continue
+
+# LOGIN
+
         if status == "online" and ultimo_status != "online":
 
-            if not primeira_verificacao:
+            if hora_logout:
 
-                if ultimo_logout:
+                offline_time = (agora - hora_logout).seconds
 
-                    diff = (agora - ultimo_logout).total_seconds()
+                if offline_time <= TEMPO_RECONEXAO:
 
-                    if diff <= TEMPO_RECONEXAO:
+                    recon = f"_🔁 Reconectou ({offline_time}s) [{agora.strftime('%H:%M')}]_"
 
-                        reconexoes.append(
-                            f"_🔁 Alan Virtue reconectou rapidamente ({int(diff)}s) [{hora_formatada}]_"
-                        )
+                    reconexoes.append(recon)
+                    reconexoes_dia += 1
 
-                    else:
+                    print("🔁 Reconexão detectada")
 
-                        enviar(f"🟢 **Alan Virtue logou às {hora_formatada}**")
-
-                else:
-
-                    enviar(f"🟢 **Alan Virtue logou às {hora_formatada}**")
+                    ultimo_status = "online"
+                    continue
 
             hora_login = agora
-            ultimo_update = None
-            ultimo_status = "online"
 
-            salvar_estado()
+            reconexoes.clear()
 
-        # PAINEL ONLINE
-        if status == "online" and hora_login:
+            mensagem_painel_id = enviar_e_pegar_id(painel_online())
 
-            if (
-                ultimo_update is None
-                or (agora - ultimo_update).total_seconds() >= INTERVALO_UPDATE
-            ):
+            print("🟢 Painel ONLINE criado")
 
-                tempo = agora - hora_login
 
-                horas = tempo.seconds // 3600
-                minutos = (tempo.seconds % 3600) // 60
+# LOGOUT
 
-                msg = (
-                    "📊 **Alan Virtue Tracker**\n\n"
-                    "**🟢 Status:** _Online_\n"
-                    f"**🕒 Logado às:** _{hora_login.strftime('%H:%M')}_\n"
-                    f"⏱ **Sessão atual:** _{horas}h {minutos}m_\n"
-                )
+        if status == "offline" and ultimo_status == "online":
 
-                if reconexoes:
-                    msg += "\n".join(reconexoes)
+            print("⏳ Possível logout, aguardando reconexão...")
 
-                editar_painel(msg)
+            hora_logout = agora
+            reconectou = False
+            tempo_espera = 0
 
-                ultimo_update = agora
+            while tempo_espera < TEMPO_RECONEXAO:
 
-        # LOGOUT
-        if status == "offline" and ultimo_status == "online" and hora_login:
+                time.sleep(30)
+                tempo_espera += 30
 
-            tempo = agora - hora_login
+                status_check = verificar_status()
 
-            horas = tempo.seconds // 3600
-            minutos = (tempo.seconds % 3600) // 60
+                print(f"🔎 Checando reconexão... {tempo_espera}s")
 
-            enviar(
-                "📊 **Alan Virtue Tracker**\n\n"
-                "**🔴 Status:** _Offline_\n"
-                f"**🕒 Deslogou às:** _{hora_formatada}_\n"
-                f"⏱ **Sessão durou:** _{horas}h {minutos}m_"
-            )
+                if status_check == "online":
 
-            salvar_historico({
-                "tempo_online_h": horas,
-                "tempo_online_m": minutos
-            })
+                    recon_time = (datetime.now() - hora_logout).seconds
 
-            hora_login = None
-            ultimo_logout = agora
-            ultimo_status = "offline"
-            reconexoes = []
-            message_id = None
+                    recon = f"_🔁 Reconectou ({recon_time}s) [{datetime.now().strftime('%H:%M')}]_"
 
-            salvar_estado()
+                    reconexoes.append(recon)
+                    reconexoes_dia += 1
 
-        primeira_verificacao = False
+                    print("🔁 Reconexão detectada")
 
-        # RESUMO DIÁRIO
-        if agora.hour == 2 and agora.minute <= 1:
+                    reconectou = True
+                    ultimo_status = "online"
 
-            if ultima_execucao_resumo != data_atual:
+                    break
 
-                resumo_diario()
 
-                limpar_historico()
-                limpar_estado()
+            if not reconectou:
 
-                enviar(
-                    "📅 **Novo dia iniciado para Alan Virtue**\n"
-                    "_⏱ Monitoramento reiniciado_"
-                )
+                enviar(painel_offline())
 
-                ultima_execucao_resumo = data_atual
+                tempo = hora_logout - hora_login
 
-        print("⏳ Aguardando próxima verificação...")
+                salvar_historico({
 
-        time.sleep(INTERVALO_VERIFICACAO)
+                    "tempo_online_h": tempo.seconds // 3600,
+                    "tempo_online_m": (tempo.seconds % 3600) // 60
 
-except KeyboardInterrupt:
+                })
 
-    enviar("🛑 Bot encerrado")
+                print("🔴 Painel OFFLINE enviado")
 
-    print("Bot finalizado")
+                ultimo_status = "offline"
+
+# UPDATE
+
+        if status=="online" and mensagem_painel_id:
+
+            if not ultimo_update_painel or (agora-ultimo_update_painel).seconds>=TEMPO_ATUALIZACAO_PAINEL:
+
+                editar(mensagem_painel_id,painel_online())
+
+                ultimo_update_painel=agora
+
+# RESUMO
+
+        if agora.hour==2 and agora.minute==0:
+
+            resumo_diario()
+
+            time.sleep(60)
+
+        ultimo_status=status
+
+        salvar_estado()
+
+        time.sleep(60)
+
+    except Exception as e:
+
+        erro=traceback.format_exc()
+
+        print("ERRO:",erro)
+
+        enviar(f"🚨 **Erro no bot**\n```{erro}```")
+
+        time.sleep(60)
