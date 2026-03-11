@@ -185,7 +185,7 @@ def resumo_diario():
 
     enviar(
         f"📊 **Resumo diário de Alan Virtue**\n"
-        f"⏱ Total online: {horas}h {minutos}m"
+        f"_⏱ Total online: {horas}h {minutos}m_"
     )
 
 
@@ -232,7 +232,7 @@ try:
                     if diff <= TEMPO_RECONEXAO:
 
                         reconexoes.append(
-                            f"🔁 Alan Virtue reconectou rapidamente ({int(diff)}s) [{hora_formatada}]"
+                            f"_🔁 Alan Virtue reconectou rapidamente ({int(diff)}s) [{hora_formatada}]_"
                         )
 
                     else:
@@ -270,9 +270,9 @@ try:
 
                 msg = (
                     "📊 **Alan Virtue Tracker**\n\n"
-                    "🟢 Status: Online\n"
-                    f"🕒 Logado às: {hora_login.strftime('%H:%M')}\n"
-                    f"⏱ Sessão atual: {horas}h {minutos}m\n"
+                    "**🟢 Status:** _Online_\n"
+                    f"**🕒 Logado às:** _{hora_login.strftime('%H:%M')}_\n"
+                    f"⏱ **Sessão atual:** _{horas}h {minutos}m_\n"
                 )
 
                 if reconexoes:
@@ -332,7 +332,7 @@ try:
 
                 enviar(
                     "📅 **Novo dia iniciado para Alan Virtue**\n"
-                    "⏱ Monitoramento reiniciado"
+                    "_⏱ Monitoramento reiniciado_"
                 )
 
                 ultima_execucao_resumo = data_atual
@@ -347,3 +347,4 @@ except KeyboardInterrupt:
     enviar("🛑 Bot encerrado")
 
     print("Bot finalizado")
+
