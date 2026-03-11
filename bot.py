@@ -361,7 +361,7 @@ while True:
                     reconexoes.append(recon)
                     reconexoes_dia += 1
 
-                    print("🔁 Reconexão detectada")
+                print("🔁 Reconexão detectada")
 
                     # atualizar painel atual
                 if mensagem_painel_id:
@@ -370,7 +370,7 @@ while True:
                     ultimo_status = "online"
                     reconectou = True
 
-break
+            break
 
 
             if not reconectou:
@@ -425,6 +425,7 @@ break
         enviar(f"🚨 **Erro no bot**\n```{erro}```")
 
         time.sleep(60)
+
 
 
 
