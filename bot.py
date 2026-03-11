@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 from datetime import datetime
+import pytz
 import json
 import os
 import traceback
@@ -22,13 +23,15 @@ estado_file = "estado_bot.json"
 TEMPO_RECONEXAO = 180
 TEMPO_ATUALIZACAO_PAINEL = 300
 
+BRASIL = pytz.timezone("America/Sao_Paulo")
+
 # -----------------------
 # VARIÁVEIS
 # -----------------------
 
 ultimo_status = None
 hora_login = None
-hora_logout = None
+datetime.now(BRASIL)ogout = None
 
 mensagem_painel_id = None
 
@@ -234,7 +237,7 @@ f"""📊 **_Resumo diário — {CHAR_NAME}_**
 
 def painel_online():
 
-    tempo = datetime.now() - hora_login
+    tempo = datetime.now(BRASIL) - hora_login
 
     h = tempo.seconds//3600
     m = (tempo.seconds%3600)//60
@@ -288,7 +291,7 @@ while True:
 
     try:
 
-        agora = datetime.now()
+        agora = datetime.now(BRASIL)
 
         print(f"[{agora.strftime('%H:%M:%S')}] verificando...")
 
@@ -350,9 +353,9 @@ while True:
 
                 if status_check == "online":
 
-                    recon_time = (datetime.now() - hora_logout).seconds
+                    recon_time = (datetime.now(BRASIL) - hora_logout).seconds
 
-                    recon = f"_🔁 Reconectou ({recon_time}s) [{datetime.now().strftime('%H:%M')}]_"
+                    recon = f"_🔁 Reconectou ({recon_time}s) [{datetime.now(BRASIL).strftime('%H:%M')}]_"
 
                     reconexoes.append(recon)
                     reconexoes_dia += 1
@@ -415,3 +418,4 @@ while True:
         enviar(f"🚨 **Erro no bot**\n```{erro}```")
 
         time.sleep(60)
+
