@@ -49,16 +49,32 @@ def verificar_status():
         return None
 
 def carregar_historico():
-    if os.path.exists(historico_file):
+    if not os.path.exists(historico_file):
+        return []
+
+    try:
         with open(historico_file, "r") as f:
-            return json.load(f)
-    return []
+            conteudo = f.read().strip()
+
+            if not conteudo:
+                return []
+
+            return json.loads(conteudo)
+
+    except Exception as e:
+        print("⚠️ Erro ao carregar histórico:", e)
+        return []
 
 def salvar_historico(evento):
     historico = carregar_historico()
     historico.append(evento)
-    with open(historico_file, "w") as f:
+
+    temp_file = historico_file + ".tmp"
+
+    with open(temp_file, "w") as f:
         json.dump(historico, f, indent=2)
+
+    os.replace(temp_file, historico_file)
 
 def resumo_diario():
     historico = carregar_historico()
@@ -156,6 +172,7 @@ try:
 except KeyboardInterrupt:
     enviar("**🛑 Bot de monitoramento finalizado.**")
     print("Bot encerrado.")
+
 
 
 
