@@ -387,22 +387,21 @@ def painel_online():
     melee = stats_memoria["melee"]
     defense = stats_memoria["defense"]
 
-    return f"""📊 **_{CHAR_NAME} Tracker_** 📊
+    return f"""📊  **_{CHAR_NAME} Tracker_**  📊
 
-🟢 **Status:** _Online_
-🕒 **Logado às:** _{hora_login.strftime('%H:%M')}_
-⌛ **Sessão atual:** _{h}h {m}m_
+🟢  **Status:** _Online_
+🕒  **Logado às:** _{hora_login.strftime('%H:%M')}_
+⌛  **Sessão atual:** _{h}h {m}m_
 
 {recon_text}
 
 ━━━━━━━━━━━━━━
 
-🔱 **Stats atuais** 🔱
+🔥 **Stats atuais** 🔥
 
 🏅 _Level_ → **{level}**
 🗡 _Melee_ → **{melee}**
-🛡 _Defense_ → **{defense}**
-"""
+🛡 _Defense_ → **{defense}**"""
 
 # -----------------------
 # PAINEL OFFLINE
@@ -469,6 +468,7 @@ while True:
                     print("🔁 Reconexão detectada")
 
                     # ⭐ VERIFICAR STATS APÓS RECONEXÃO
+                    time.sleep(5)
                     verificar_stats()
 
                     if mensagem_painel_id:
@@ -520,6 +520,7 @@ while True:
                     print("🔁 Reconexão detectada")
 
                     # ⭐ VERIFICAR STATS APÓS RECONEXÃO
+                    time.sleep(5)
                     verificar_stats()
 
                     if mensagem_painel_id:
@@ -546,6 +547,7 @@ while True:
                 print("🔴 Painel OFFLINE enviado")
 
                 # ⭐ VERIFICAR STATS APÓS LOGOUT
+                time.sleep(5)
                 verificar_stats()
 
                 ultimo_status = "offline"
