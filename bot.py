@@ -45,6 +45,12 @@ ultimo_update_painel = None
 # JSON
 # -----------------------
 
+stats_memoria = {
+    "level": "?",
+    "melee": "?",
+    "defense": "?"
+}
+
 def carregar_json(file):
 
     if not os.path.exists(file):
@@ -216,6 +222,48 @@ def pegar_stats():
 
     return stats
 
+def verificar_stats():
+
+    global stats_memoria
+
+    stats_antigos = carregar_json(stats_file)
+    stats_atuais = pegar_stats()
+
+    if not stats_atuais:
+        return
+
+    # atualizar memória apenas se pegou stats válidos
+    if stats_atuais["level"]:
+        stats_memoria = stats_atuais
+
+    if stats_antigos:
+
+        if stats_atuais["level"] and stats_atuais["level"] > stats_antigos.get("level", 0):
+
+            enviar(
+f"""🎉 **LEVEL UP**
+
+{stats_antigos['level']} → {stats_atuais['level']}"""
+)
+
+        if stats_atuais["melee"] and stats_atuais["melee"] > stats_antigos.get("melee", 0):
+
+            enviar(
+f"""🗡 **MELEE UP**
+
+{stats_antigos['melee']} → {stats_atuais['melee']}"""
+)
+
+        if stats_atuais["defense"] and stats_atuais["defense"] > stats_antigos.get("defense", 0):
+
+            enviar(
+f"""🛡 **DEFENSE UP**
+
+{stats_antigos['defense']} → {stats_atuais['defense']}"""
+)
+
+    salvar_json(stats_file, stats_atuais)
+
 # -----------------------
 # HISTÓRICO
 # -----------------------
@@ -327,22 +375,34 @@ def painel_online():
 
     tempo = datetime.now(BRASIL) - hora_login
 
-    h = tempo.seconds//3600
-    m = (tempo.seconds%3600)//60
+    h = tempo.seconds // 3600
+    m = (tempo.seconds % 3600) // 60
 
-    recon_text=""
+    recon_text = ""
 
     if reconexoes:
+        recon_text = "\n".join(reconexoes)
 
-        recon_text="\n".join(reconexoes)
+    level = stats_memoria["level"]
+    melee = stats_memoria["melee"]
+    defense = stats_memoria["defense"]
 
-    return f"""📊 **_{CHAR_NAME} Tracker_**
+    return f"""📊 **_{CHAR_NAME} Tracker_** 📊
 
 🟢 **Status:** _Online_
-**🕒 Logado às:** _{hora_login.strftime('%H:%M')}_
-⏱ **Sessão atual:** _{h}h {m}m_
+🕒 **Logado às:** _{hora_login.strftime('%H:%M')}_
+⌛ **Sessão atual:** _{h}h {m}m_
 
-{recon_text}"""
+{recon_text}
+
+━━━━━━━━━━━━━━
+
+🔱 **Stats atuais** 🔱
+
+🏅 _Level_ → **{level}**
+🗡 _Melee_ → **{melee}**
+🛡 _Defense_ → **{defense}**
+"""
 
 # -----------------------
 # PAINEL OFFLINE
@@ -355,11 +415,11 @@ def painel_offline():
     h = tempo.seconds//3600
     m = (tempo.seconds%3600)//60
 
-    return f"""📊 **_{CHAR_NAME} Tracker_**
+    return f"""📊 **_{CHAR_NAME} Tracker_** 📊
 
 🔴 **Status:** _Offline_
 **🕒 Deslogou às:** _{hora_logout.strftime('%H:%M')}_
-⏱ **Sessão durou:** _{h}h {m}m_"""
+⌛ **Sessão durou:** _{h}h {m}m_"""
 
 # -----------------------
 # INICIO
@@ -370,16 +430,7 @@ print("⚠️ Bot reiniciado ou reconectado")
 enviar("**_⚠️ Bot reiniciado ou reconectado_**")
 
 carregar_estado()
-
-# -----------------------
-# INICIO
-# -----------------------
-
-print("⚠️ Bot reiniciado ou reconectado")
-
-enviar("**_⚠️ Bot reiniciado ou reconectado_**")
-
-carregar_estado()
+verificar_stats()
 
 # -----------------------
 # LOOP
