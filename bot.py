@@ -333,6 +333,8 @@ while True:
 
             print("🟢 Painel ONLINE criado")
 
+            ultimo_status = "online"
+
 
         # LOGOUT
         if status == "offline" and ultimo_status == "online":
@@ -399,22 +401,12 @@ while True:
 
                 ultimo_update_painel = agora
 
-        time.sleep(60)
 
-    except Exception as e:
-
-        print("⚠️ Erro no loop:", e)
-        time.sleep(60)
-
-# RESUMO
-
-        if agora.hour==2 and agora.minute==0:
-
+        # RESUMO DIÁRIO
+        if agora.hour == 2 and agora.minute == 0:
             resumo_diario()
-
             time.sleep(60)
 
-        ultimo_status=status
 
         salvar_estado()
 
@@ -422,9 +414,10 @@ while True:
 
     except Exception as e:
 
-        erro=traceback.format_exc()
+        import traceback
+        erro = traceback.format_exc()
 
-        print("ERRO:",erro)
+        print("ERRO:", erro)
 
         enviar(f"🚨 **Erro no bot**\n```{erro}```")
 
