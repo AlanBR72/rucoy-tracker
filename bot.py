@@ -19,6 +19,7 @@ webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJ
 
 historico_file = "historico.json"
 estado_file = "estado_bot.json"
+stats_file = "stats.json"
 
 TEMPO_RECONEXAO = 180
 TEMPO_ATUALIZACAO_PAINEL = 300
@@ -126,6 +127,94 @@ def verificar_status():
         enviar(erro)
 
         return None
+
+# -----------------------
+# STATS (LEVEL / MELEE / DEF)
+# -----------------------
+
+def pegar_stats():
+
+    personagem = CHAR_NAME
+
+    stats = {
+        "level": None,
+        "melee": None,
+        "defense": None
+    }
+
+    # LEVEL (perfil)
+    try:
+
+        r = requests.get(url, timeout=10)
+
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        texto = soup.text
+
+        if "Level" in texto:
+            stats["level"] = int(texto.split("Level")[1].split()[0])
+
+    except Exception as e:
+
+        print("Erro ao pegar level:", e)
+
+
+    # MELEE
+    try:
+
+        r = requests.get(
+            "https://www.rucoyonline.com/highscores/melee/2016/1",
+            timeout=10
+        )
+
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        for row in soup.find_all("tr"):
+
+            cols = row.find_all("td")
+
+            if len(cols) >= 3:
+
+                nome = cols[1].text.strip().replace("Online","").strip()
+
+                if nome == personagem:
+
+                    stats["melee"] = int(cols[2].text.strip())
+                    break
+
+    except Exception as e:
+
+        print("Erro ao pegar melee:", e)
+
+
+    # DEFENSE
+    try:
+
+        r = requests.get(
+            "https://www.rucoyonline.com/highscores/defense/2016/1",
+            timeout=10
+        )
+
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        for row in soup.find_all("tr"):
+
+            cols = row.find_all("td")
+
+            if len(cols) >= 3:
+
+                nome = cols[1].text.strip().replace("Online","").strip()
+
+                if nome == personagem:
+
+                    stats["defense"] = int(cols[2].text.strip())
+                    break
+
+    except Exception as e:
+
+        print("Erro ao pegar defense:", e)
+
+    return stats
 
 # -----------------------
 # HISTÓRICO
@@ -296,6 +385,53 @@ while True:
 
         status = verificar_status()
 
+
+        # -----------------------
+        # VERIFICAR STATS (5 min)
+        # -----------------------
+
+        if agora.minute % 5 == 0:
+
+            stats_antigos = carregar_json(stats_file)
+            stats_atuais = pegar_stats()
+
+            if stats_atuais:
+
+                if stats_antigos:
+
+                    if stats_atuais["level"] and stats_antigos.get("level"):
+
+                        if stats_atuais["level"] > stats_antigos["level"]:
+
+                            enviar(
+f"""🎉 **LEVEL UP**
+
+{stats_antigos['level']} → {stats_atuais['level']}"""
+)
+
+                    if stats_atuais["melee"] and stats_antigos.get("melee"):
+
+                        if stats_atuais["melee"] > stats_antigos["melee"]:
+
+                            enviar(
+f"""🗡 **MELEE UP**
+
+{stats_antigos['melee']} → {stats_atuais['melee']}"""
+)
+
+                    if stats_atuais["defense"] and stats_antigos.get("defense"):
+
+                        if stats_atuais["defense"] > stats_antigos["defense"]:
+
+                            enviar(
+f"""🛡 **DEFENSE UP**
+
+{stats_antigos['defense']} → {stats_atuais['defense']}"""
+)
+
+                salvar_json(stats_file, stats_atuais)
+
+
         if status is None:
             time.sleep(60)
             continue
@@ -400,7 +536,6 @@ while True:
                 editar(mensagem_painel_id, painel_online())
 
                 ultimo_update_painel = agora
-
 
         # RESUMO DIÁRIO
         if agora.hour == 2 and agora.minute == 0:
