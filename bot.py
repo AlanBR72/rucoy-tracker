@@ -372,6 +372,16 @@ enviar("**_⚠️ Bot reiniciado ou reconectado_**")
 carregar_estado()
 
 # -----------------------
+# INICIO
+# -----------------------
+
+print("⚠️ Bot reiniciado ou reconectado")
+
+enviar("**_⚠️ Bot reiniciado ou reconectado_**")
+
+carregar_estado()
+
+# -----------------------
 # LOOP
 # -----------------------
 
@@ -384,53 +394,6 @@ while True:
         print(f"[{agora.strftime('%H:%M:%S')}] verificando...")
 
         status = verificar_status()
-
-
-        # -----------------------
-        # VERIFICAR STATS (5 min)
-        # -----------------------
-
-        if agora.minute % 5 == 0:
-
-            stats_antigos = carregar_json(stats_file)
-            stats_atuais = pegar_stats()
-
-            if stats_atuais:
-
-                if stats_antigos:
-
-                    if stats_atuais["level"] and stats_antigos.get("level"):
-
-                        if stats_atuais["level"] > stats_antigos["level"]:
-
-                            enviar(
-f"""🎉 **LEVEL UP**
-
-{stats_antigos['level']} → {stats_atuais['level']}"""
-)
-
-                    if stats_atuais["melee"] and stats_antigos.get("melee"):
-
-                        if stats_atuais["melee"] > stats_antigos["melee"]:
-
-                            enviar(
-f"""🗡 **MELEE UP**
-
-{stats_antigos['melee']} → {stats_atuais['melee']}"""
-)
-
-                    if stats_atuais["defense"] and stats_antigos.get("defense"):
-
-                        if stats_atuais["defense"] > stats_antigos["defense"]:
-
-                            enviar(
-f"""🛡 **DEFENSE UP**
-
-{stats_antigos['defense']} → {stats_atuais['defense']}"""
-)
-
-                salvar_json(stats_file, stats_atuais)
-
 
         if status is None:
             time.sleep(60)
@@ -453,6 +416,9 @@ f"""🛡 **DEFENSE UP**
                     reconexoes_dia += 1
 
                     print("🔁 Reconexão detectada")
+
+                    # ⭐ VERIFICAR STATS APÓS RECONEXÃO
+                    verificar_stats()
 
                     if mensagem_painel_id:
                         editar(mensagem_painel_id, painel_online())
@@ -502,6 +468,9 @@ f"""🛡 **DEFENSE UP**
 
                     print("🔁 Reconexão detectada")
 
+                    # ⭐ VERIFICAR STATS APÓS RECONEXÃO
+                    verificar_stats()
+
                     if mensagem_painel_id:
                         editar(mensagem_painel_id, painel_online())
 
@@ -525,6 +494,9 @@ f"""🛡 **DEFENSE UP**
 
                 print("🔴 Painel OFFLINE enviado")
 
+                # ⭐ VERIFICAR STATS APÓS LOGOUT
+                verificar_stats()
+
                 ultimo_status = "offline"
 
 
@@ -537,8 +509,10 @@ f"""🛡 **DEFENSE UP**
 
                 ultimo_update_painel = agora
 
+
         # RESUMO DIÁRIO
         if agora.hour == 2 and agora.minute == 0:
+
             resumo_diario()
             time.sleep(60)
 
@@ -549,7 +523,6 @@ f"""🛡 **DEFENSE UP**
 
     except Exception as e:
 
-        import traceback
         erro = traceback.format_exc()
 
         print("ERRO:", erro)
@@ -559,13 +532,4 @@ f"""🛡 **DEFENSE UP**
         salvar_estado()
 
         time.sleep(60)
-
-
-
-
-
-
-
-
-
 
