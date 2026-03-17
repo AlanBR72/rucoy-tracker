@@ -267,6 +267,15 @@ f"""🛡 **DEFENSE UP**
 
     salvar_json(stats_file, stats_atuais)
 
+def formatar_xp(xp):
+    if xp >= 1_000_000_000:
+        return f"{xp/1_000_000_000:.1f}kkk"
+    elif xp >= 1_000_000:
+        return f"{xp/1_000_000:.1f}kk"
+    elif xp >= 1_000:
+        return f"{xp/1_000:.1f}k"
+    return str(xp)
+
 def pegar_xp():
 
     personagem = CHAR_NAME
