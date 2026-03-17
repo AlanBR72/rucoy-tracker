@@ -618,6 +618,154 @@ while True:
                 ultimo_update_painel = agora
 
                 tempo = hora_logout - hora_login
+# -----------------------
+# LOOP
+# -----------------------
+
+while True:
+
+    try:
+
+        agora = datetime.now(BRASIL)
+
+        print(f"[{agora.strftime('%H:%M:%S')}] verificando...")
+
+        status = verificar_status()
+
+        if status is None:
+            time.sleep(60)
+            continue
+
+
+        # -----------------------
+        # LOGIN
+        # -----------------------
+        if status == "online" and ultimo_status != "online":
+
+            if hora_logout:
+
+                offline_time = (agora - hora_logout).seconds
+
+                if offline_time <= TEMPO_RECONEXAO:
+
+                    xp_final = pegar_xp()
+
+                    msg_recon = f"_🔁 Reconectou ({offline_time}s) [{agora.strftime('%H:%M')}]_"
+                    reconexoes.append(msg_recon)
+
+                    # XP ganho
+                    if xp_inicio_sessao and xp_final:
+
+                        ganho = xp_final - xp_inicio_sessao
+                        xp_sessao_total += ganho
+
+                        if ganho >= 5_000_000:
+                            msg_xp = f"_**💰 XP GAIN →** +{formatar_xp(ganho)} XP_"
+                            reconexoes.append(msg_xp)
+
+                        xp_inicio_sessao = xp_final
+
+                    reconexoes = reconexoes[-6:]
+                    reconexoes_dia += 1
+
+                    print("🔁 Reconexão detectada")
+
+                    time.sleep(5)
+                    verificar_stats()
+
+                    if mensagem_painel_id:
+                        editar(mensagem_painel_id, painel_online())
+
+                    ultimo_status = "online"
+                    hora_logout = None
+                    continue
+
+            # LOGIN NORMAL
+            hora_login = agora
+            reconexoes.clear()
+            xp_inicio_sessao = pegar_xp()
+            xp_sessao_total = 0
+
+            mensagem_painel_id = enviar_e_pegar_id(painel_online())
+            ultimo_update_painel = agora
+
+            print("🟢 Painel ONLINE criado")
+
+            ultimo_status = "online"
+
+
+        # -----------------------
+        # LOGOUT
+        # -----------------------
+        if status == "offline" and ultimo_status == "online":
+
+            print("⏳ Possível logout, aguardando reconexão...")
+
+            hora_logout = agora
+            reconectou = False
+            tempo_espera = 0
+
+            while tempo_espera < TEMPO_RECONEXAO:
+
+                time.sleep(30)
+                tempo_espera += 30
+
+                status_check = verificar_status()
+
+                print(f"🔎 Checando reconexão... {tempo_espera}s")
+
+                if status_check == "online":
+
+                    recon_time = (datetime.now(BRASIL) - hora_logout).seconds
+
+                    xp_final = pegar_xp()
+
+                    msg_recon = f"_🔁 Reconectou ({recon_time}s) [{datetime.now(BRASIL).strftime('%H:%M')}]_"
+                    reconexoes.append(msg_recon)
+
+                    # XP ganho
+                    if xp_inicio_sessao and xp_final:
+
+                        ganho = xp_final - xp_inicio_sessao
+                        xp_sessao_total += ganho
+
+                        if ganho >= 5_000_000:
+                            msg_xp = f"_**💰 XP GAIN →** +{formatar_xp(ganho)} XP_"
+                            reconexoes.append(msg_xp)
+
+                        xp_inicio_sessao = xp_final
+
+                    reconexoes = reconexoes[-6:]
+                    reconexoes_dia += 1
+
+                    print("🔁 Reconexão detectada")
+
+                    time.sleep(5)
+                    verificar_stats()
+
+                    if mensagem_painel_id:
+                        editar(mensagem_painel_id, painel_online())
+
+                    ultimo_status = "online"
+                    hora_logout = None
+                    reconectou = True
+                    break
+
+
+            # 🔴 LOGOUT DEFINITIVO
+            if not reconectou:
+
+                xp_final = pegar_xp()
+
+                if xp_inicio_sessao and xp_final:
+
+                    ganho = xp_final - xp_inicio_sessao
+                    xp_sessao_total += ganho
+
+                mensagem_painel_id = enviar_e_pegar_id(painel_offline())
+                ultimo_update_painel = agora
+
+                tempo = hora_logout - hora_login
 
                 salvar_historico({
                     "tempo_online_h": tempo.seconds // 3600,
@@ -626,20 +774,20 @@ while True:
 
                 print("🔴 Painel OFFLINE enviado")
 
-                # ⭐ VERIFICAR STATS APÓS LOGOUT
                 time.sleep(5)
                 verificar_stats()
 
                 ultimo_status = "offline"
 
 
-        # UPDATE
+        # -----------------------
+        # UPDATE PAINEL
+        # -----------------------
         if status == "online" and mensagem_painel_id:
 
             if not ultimo_update_painel or (agora - ultimo_update_painel).seconds >= TEMPO_ATUALIZACAO_PAINEL:
 
                 editar(mensagem_painel_id, painel_online())
-
                 ultimo_update_painel = agora
 
 
