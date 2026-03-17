@@ -41,6 +41,9 @@ reconexoes_dia = 0
 
 ultimo_update_painel = None
 
+xp_inicio_sessao = None
+xp_sessao_total = 0
+
 # -----------------------
 # JSON
 # -----------------------
@@ -264,6 +267,37 @@ f"""🛡 **DEFENSE UP**
 
     salvar_json(stats_file, stats_atuais)
 
+def pegar_xp():
+
+    personagem = CHAR_NAME
+
+    try:
+
+        r = requests.get(
+            "https://www.rucoyonline.com/highscores/experience",
+            timeout=10
+        )
+
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        for row in soup.find_all("tr"):
+
+            cols = row.find_all("td")
+
+            if len(cols) >= 4:
+
+                nome = cols[1].text.strip().replace("Online","").strip()
+
+                if nome == personagem:
+
+                    xp = int(cols[3].text.strip().replace(",", ""))
+                    return xp
+
+    except Exception as e:
+        print("Erro ao pegar XP:", e)
+
+    return None
+
 # -----------------------
 # HISTÓRICO
 # -----------------------
@@ -414,11 +448,16 @@ def painel_offline():
     h = tempo.seconds//3600
     m = (tempo.seconds%3600)//60
 
+    xp_texto = ""
+
+    if xp_sessao_total > 0:
+        xp_texto = f"\n💰 **XP da sessão:** _+{xp_sessao_total:,} XP_"
+
     return f"""📊 **_{CHAR_NAME} Tracker_** 📊
 
 🔴 **Status:** _Offline_
-**🕒 Deslogou às:** _{hora_logout.strftime('%H:%M')}_
-⌛ **Sessão durou:** _{h}h {m}m_"""
+🕒 Deslogou às: _{hora_logout.strftime('%H:%M')}_
+⌛ Sessão durou: _{h}h {m}m_{xp_texto}"""
 
 # -----------------------
 # INICIO
@@ -459,10 +498,25 @@ while True:
 
                 if offline_time <= TEMPO_RECONEXAO:
 
-                    recon = f"_🔁 Reconectou ({offline_time}s) [{agora.strftime('%H:%M')}]_"
+                    xp_final = pegar_xp()
 
-                    reconexoes.append(recon)
-                    reconexoes = reconexoes[-5:]
+                    msg_recon = f"_🔁 Reconectou ({offline_time}s) [{agora.strftime('%H:%M')}]_"
+                    reconexoes.append(msg_recon)
+
+                # XP ganho
+                if xp_inicio_sessao and xp_final:
+
+                    ganho = xp_final - xp_inicio_sessao
+                    xp_sessao_total += ganho
+
+                    if ganho >= 5_000_000:
+
+                        msg_xp = f"_**💰 XP GAIN →** +{ganho:,} XP_"
+                        reconexoes.append(msg_xp)
+
+                    xp_inicio_sessao = xp_final  # reset pra próxima contagem
+
+                    # limitar histórico visual
                     reconexoes_dia += 1
 
                     print("🔁 Reconexão detectada")
@@ -480,6 +534,8 @@ while True:
 
             hora_login = agora
             reconexoes.clear()
+            xp_inicio_sessao = pegar_xp()
+            xp_sessao_total = 0
 
             mensagem_painel_id = enviar_e_pegar_id(painel_online())
             ultimo_update_painel = agora
@@ -511,10 +567,25 @@ while True:
 
                     recon_time = (datetime.now(BRASIL) - hora_logout).seconds
 
-                    recon = f"_🔁 Reconectou ({recon_time}s) [{datetime.now(BRASIL).strftime('%H:%M')}]_"
+                    xp_final = pegar_xp()
 
-                    reconexoes.append(recon)
-                    reconexoes = reconexoes[-5:]
+                    msg_recon = f"_🔁 Reconectou ({recon_time}s) [{agora.strftime('%H:%M')}]_"
+                    reconexoes.append(msg_recon)
+
+                # XP ganho
+                if xp_inicio_sessao and xp_final:
+
+                    ganho = xp_final - xp_inicio_sessao
+                    xp_sessao_total += ganho
+
+                    if ganho >= 5_000_000:
+
+                        msg_xp = f"_**💰 XP GAIN →** +{ganho:,} XP_"
+                        reconexoes.append(msg_xp)
+
+                    xp_inicio_sessao = xp_final  # reset pra próxima contagem
+
+                    # limitar histórico visual
                     reconexoes_dia += 1
 
                     print("🔁 Reconexão detectada")
@@ -534,6 +605,15 @@ while True:
 
             if not reconectou:
 
+                # 🔴 CALCULAR XP FINAL DA SESSÃO
+                xp_final = pegar_xp()
+
+                if xp_inicio_sessao and xp_final:
+
+                    ganho = xp_final - xp_inicio_sessao
+                    xp_sessao_total += ganho
+
+                # 🔴 AGORA ENVIA O PAINEL
                 mensagem_painel_id = enviar_e_pegar_id(painel_offline())
                 ultimo_update_painel = agora
 
