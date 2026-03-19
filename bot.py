@@ -491,8 +491,9 @@ while True:
             time.sleep(60)
             continue
 
-
+        # -----------------------
         # LOGIN
+        # -----------------------
         if status == "online" and ultimo_status != "online":
 
             if hora_logout:
@@ -501,56 +502,29 @@ while True:
 
                 if offline_time <= TEMPO_RECONEXAO:
 
-    xp_final = pegar_xp()
+                    xp_final = pegar_xp()
 
-    msg_recon = f"_🔁  Reconectou ({offline_time}s) [{agora.strftime('%H:%M')}]_"
-    reconexoes.append(msg_recon)
+                    msg_recon = f"_🔁  Reconectou ({offline_time}s) [{agora.strftime('%H:%M')}]_"
+                    reconexoes.append(msg_recon)
 
-    # ✅ XP ganho AGORA DENTRO
-    if xp_inicio_sessao is not None and xp_final is not None:
+                    # XP ganho
+                    if xp_inicio_sessao is not None and xp_final is not None:
 
-        ganho = xp_final - xp_inicio_sessao
-        xp_sessao_total += ganho
-        xp_total_dia += ganho
+                        ganho = xp_final - xp_inicio_sessao
+                        xp_sessao_total += ganho
+                        xp_total_dia += ganho
 
-        if ganho >= 5_000_000:
-            msg_xp = f"**💰  XP GAIN →** _+{formatar_xp(ganho)} XP_"
-            reconexoes.append(msg_xp)
+                        if ganho >= 5_000_000:
+                            msg_xp = f"**💰  XP GAIN →** _+{formatar_xp(ganho)} XP_"
+                            reconexoes.append(msg_xp)
 
-        xp_inicio_sessao = xp_final
+                        xp_inicio_sessao = xp_final
 
-    reconexoes = reconexoes[-6:]
-    reconexoes_dia += 1
-
-    print("🔁 Reconexão detectada")
-
-    time.sleep(5)
-    verificar_stats()
-
-    if mensagem_painel_id:
-        editar(mensagem_painel_id, painel_online())
-
-    ultimo_status = "online"
-    hora_logout = None
-    continue
-
-                    ganho = xp_final - xp_inicio_sessao
-                    xp_sessao_total += ganho
-                    xp_total_dia += ganho
-
-                    if ganho >= 5_000_000:
-
-                        msg_xp = f"**💰  XP GAIN →** _+{ganho:,} XP_"
-                        reconexoes.append(msg_xp)
-
-                    xp_inicio_sessao = xp_final  # reset pra próxima contagem
-
-                    # limitar histórico visual
+                    reconexoes = reconexoes[-6:]
                     reconexoes_dia += 1
 
                     print("🔁 Reconexão detectada")
 
-                    # ⭐ VERIFICAR STATS APÓS RECONEXÃO
                     time.sleep(5)
                     verificar_stats()
 
@@ -561,6 +535,7 @@ while True:
                     hora_logout = None
                     continue
 
+            # LOGIN NORMAL
             hora_login = agora
             reconexoes.clear()
             xp_inicio_sessao = pegar_xp()
@@ -573,8 +548,9 @@ while True:
 
             ultimo_status = "online"
 
-
+        # -----------------------
         # LOGOUT
+        # -----------------------
         if status == "offline" and ultimo_status == "online":
 
             print("⏳ Possível logout, aguardando reconexão...")
@@ -594,59 +570,31 @@ while True:
 
                 if status_check == "online":
 
-    recon_time = (datetime.now(BRASIL) - hora_logout).seconds
+                    recon_time = (datetime.now(BRASIL) - hora_logout).seconds
 
-    xp_final = pegar_xp()
+                    xp_final = pegar_xp()
 
-    msg_recon = f"_🔁  Reconectou ({recon_time}s) [{agora.strftime('%H:%M')}]_"
-    reconexoes.append(msg_recon)
+                    msg_recon = f"_🔁  Reconectou ({recon_time}s) [{datetime.now(BRASIL).strftime('%H:%M')}]_"
+                    reconexoes.append(msg_recon)
 
-    # ✅ XP ganho DENTRO
-    if xp_inicio_sessao is not None and xp_final is not None:
+                    # XP ganho
+                    if xp_inicio_sessao is not None and xp_final is not None:
 
-        ganho = xp_final - xp_inicio_sessao
-        xp_sessao_total += ganho
-        xp_total_dia += ganho
+                        ganho = xp_final - xp_inicio_sessao
+                        xp_sessao_total += ganho
+                        xp_total_dia += ganho
 
-        if ganho >= 5_000_000:
-            msg_xp = f"**💰  XP GAIN →** _+{formatar_xp(ganho)} XP_"
-            reconexoes.append(msg_xp)
+                        if ganho >= 5_000_000:
+                            msg_xp = f"**💰  XP GAIN →** _+{formatar_xp(ganho)} XP_"
+                            reconexoes.append(msg_xp)
 
-        xp_inicio_sessao = xp_final
+                        xp_inicio_sessao = xp_final
 
-    reconexoes = reconexoes[-6:]
-    reconexoes_dia += 1
-
-    print("🔁 Reconexão detectada")
-
-    time.sleep(5)
-    verificar_stats()
-
-    if mensagem_painel_id:
-        editar(mensagem_painel_id, painel_online())
-
-    ultimo_status = "online"
-    hora_logout = None
-    reconectou = True
-    break
-
-                    ganho = xp_final - xp_inicio_sessao
-                    xp_sessao_total += ganho
-                    xp_total_dia += ganho
-
-                    if ganho >= 5_000_000:
-
-                        msg_xp = f"**💰  XP GAIN →** _+{ganho:,} XP_"
-                        reconexoes.append(msg_xp)
-
-                    xp_inicio_sessao = xp_final  # reset pra próxima contagem
-
-                    # limitar histórico visual
+                    reconexoes = reconexoes[-6:]
                     reconexoes_dia += 1
 
                     print("🔁 Reconexão detectada")
 
-                    # ⭐ VERIFICAR STATS APÓS RECONEXÃO
                     time.sleep(5)
                     verificar_stats()
 
@@ -658,18 +606,17 @@ while True:
                     reconectou = True
                     break
 
-
+            # 🔴 LOGOUT REAL
             if not reconectou:
 
-                # 🔴 CALCULAR XP FINAL DA SESSÃO
                 xp_final = pegar_xp()
 
-                if xp_inicio_sessao and xp_final:
+                if xp_inicio_sessao is not None and xp_final is not None:
 
                     ganho = xp_final - xp_inicio_sessao
                     xp_sessao_total += ganho
+                    xp_total_dia += ganho
 
-                # 🔴 AGORA ENVIA O PAINEL
                 mensagem_painel_id = enviar_e_pegar_id(painel_offline())
                 ultimo_update_painel = agora
 
@@ -682,29 +629,28 @@ while True:
 
                 print("🔴 Painel OFFLINE enviado")
 
-                # ⭐ VERIFICAR STATS APÓS LOGOUT
                 time.sleep(5)
                 verificar_stats()
 
                 ultimo_status = "offline"
 
-
-        # UPDATE
+        # -----------------------
+        # UPDATE PAINEL
+        # -----------------------
         if status == "online" and mensagem_painel_id:
 
             if not ultimo_update_painel or (agora - ultimo_update_painel).seconds >= TEMPO_ATUALIZACAO_PAINEL:
 
                 editar(mensagem_painel_id, painel_online())
-
                 ultimo_update_painel = agora
 
-
+        # -----------------------
         # RESUMO DIÁRIO
+        # -----------------------
         if agora.hour == 2 and agora.minute == 0:
 
             resumo_diario()
             time.sleep(60)
-
 
         salvar_estado()
 
@@ -721,4 +667,3 @@ while True:
         salvar_estado()
 
         time.sleep(60)
-
