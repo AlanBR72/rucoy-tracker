@@ -465,7 +465,7 @@ def painel_offline():
 
     xp_texto = ""
 
-    if xp_sessao_total > 0:
+    if xp_sessao_total >= 5_000_000:
         xp_texto = f"\n💰  **XP da sessão:** _+{xp_sessao_total:,} XP_"
 
     return f"""📊  **_{CHAR_NAME} Tracker_**  📊
