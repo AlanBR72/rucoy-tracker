@@ -299,6 +299,18 @@ def pegar_xp():
 
     return None
 
+def formatar_xp(xp):
+    if xp >= 1_000_000_000:
+        v = xp / 1_000_000_000
+        return f"{v:.1f}".rstrip("0").rstrip(".") + "kkk"
+    elif xp >= 1_000_000:
+        v = xp / 1_000_000
+        return f"{v:.1f}".rstrip("0").rstrip(".") + "kk"
+    elif xp >= 1_000:
+        v = xp / 1_000
+        return f"{v:.1f}".rstrip("0").rstrip(".") + "k"
+    return str(xp)
+
 # -----------------------
 # HISTÓRICO
 # -----------------------
