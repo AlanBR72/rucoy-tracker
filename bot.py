@@ -435,6 +435,10 @@ def painel_online():
     level = stats_memoria["level"]
     melee = stats_memoria["melee"]
     defense = stats_memoria["defense"]
+    xp_antes = ""
+
+    if xp_inicio_sessao is not None:
+        xp_antes = f"{xp_inicio_sessao:,} XP".replace(",", ".")
 
     return f"""📊  **_{CHAR_NAME} Tracker_**  📊
 
@@ -448,6 +452,7 @@ def painel_online():
 
 🔥  **Stats atuais**  🔥
 
+🔷  _XP antes_ → **{xp_antes}**
 🏅  _Level_ → **{level}**
 🗡  _Melee_ → **{melee}**
 🛡  _Defense_ → **{defense}**"""
