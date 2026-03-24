@@ -375,6 +375,7 @@ def carregar_estado():
 def resumo_diario():
 
     global reconexoes_dia
+    global xp_total_dia, xp_sessao_total, xp_inicio_sessao
 
     historico = carregar_historico()
 
@@ -411,6 +412,11 @@ f"""📊  **_Resumo diário — {CHAR_NAME}_  📊**
     salvar_json(historico_file,[])
     salvar_json(estado_file,{})
     reconexoes_dia = 0
+
+    # RESET XP
+    xp_total_dia = 0
+    xp_sessao_total = 0
+    xp_inicio_sessao = None
 
     enviar("_🧹 Dados do dia limpos com sucesso_")
 
