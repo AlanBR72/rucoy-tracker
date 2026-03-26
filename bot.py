@@ -689,8 +689,6 @@ while True:
         # -----------------------
         if agora.hour == 2 and agora.minute == 0:
             
-            global resumo_pendente
-            
             resumo_pendente = True
             print("📊 Resumo diário pendente...")
             time.sleep(60)
