@@ -45,6 +45,8 @@ xp_inicio_sessao = None
 xp_sessao_total = 0
 xp_total_dia = 0
 
+resumo_pendente = False
+
 # -----------------------
 # JSON
 # -----------------------
@@ -514,6 +516,11 @@ while True:
             time.sleep(60)
             continue
 
+        if resumo_pendente and status == "offline":
+            print("📊 Enviando resumo diário (offline)...")
+            resumo_diario()
+            resumo_pendente = False
+
         # -----------------------
         # LOGIN
         # -----------------------
@@ -657,6 +664,16 @@ while True:
 
                 ultimo_status = "offline"
 
+                # -----------------------
+                # RESUMO PENDENTE
+                # -----------------------
+                if resumo_pendente:
+
+                    print("📊 Enviando resumo após logout...")
+
+                    resumo_diario()
+                    resumo_pendente = False
+
         # -----------------------
         # UPDATE PAINEL
         # -----------------------
@@ -671,8 +688,11 @@ while True:
         # RESUMO DIÁRIO
         # -----------------------
         if agora.hour == 2 and agora.minute == 0:
-
-            resumo_diario()
+            
+            global resumo_pendente
+            
+            resumo_pendente = True
+            print("📊 Resumo diário pendente...")
             time.sleep(60)
 
         salvar_estado()
