@@ -462,7 +462,7 @@ def painel_online():
 
 🔷  _XP antes_ → **{xp_antes}**
 🏅  _Level_ → **{level}**
-🧙‍♂️  _Magic → **{magic}**
+🧙‍♂️  _Magic_ → **{magic}**
 🛡  _Defense_ → **{defense}**"""
 
 # -----------------------
