@@ -11,9 +11,9 @@ import traceback
 # CONFIG
 # ----------------------- 
 
-CHAR_NAME = "Alan Virtue"
+CHAR_NAME = "Virtue Alan"
 
-url = "https://www.rucoyonline.com/characters/Alan%20Virtue"
+url = "https://www.rucoyonline.com/characters/Virtue%20Alan"
 
 webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
 
