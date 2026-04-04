@@ -53,7 +53,7 @@ resumo_pendente = False
 
 stats_memoria = {
     "level": "?",
-    "melee": "?",
+    "magic": "?",
     "defense": "?"
 }
 
@@ -141,7 +141,7 @@ def verificar_status():
         return None
 
 # -----------------------
-# STATS (LEVEL / MELEE / DEF)
+# STATS (LEVEL / MAGIC / DEF)
 # -----------------------
 
 def pegar_stats():
@@ -150,7 +150,7 @@ def pegar_stats():
 
     stats = {
         "level": None,
-        "melee": None,
+        "magic": None,
         "defense": None
     }
 
@@ -171,11 +171,11 @@ def pegar_stats():
         print("Erro ao pegar level:", e)
 
 
-    # MELEE
+    # MAGIC
     try:
 
         r = requests.get(
-            "https://www.rucoyonline.com/highscores/melee/2016/1",
+            "https://www.rucoyonline.com/highscores/magic/2016/1",
             timeout=10
         )
 
@@ -191,12 +191,12 @@ def pegar_stats():
 
                 if nome == personagem:
 
-                    stats["melee"] = int(cols[2].text.strip())
+                    stats["magic"] = int(cols[2].text.strip())
                     break
 
     except Exception as e:
 
-        print("Erro ao pegar melee:", e)
+        print("Erro ao pegar magic:", e)
 
 
     # DEFENSE
@@ -252,12 +252,12 @@ f"""🎉 **LEVEL UP**
 {stats_antigos['level']} → {stats_atuais['level']}"""
 )
 
-        if stats_atuais["melee"] and stats_atuais["melee"] > stats_antigos.get("melee", 0):
+        if stats_atuais["magic"] and stats_atuais["magic"] > stats_antigos.get("magic", 0):
 
             enviar(
-f"""🗡 **MELEE UP**
+f"""🗡 **MAGIC UP**
 
-{stats_antigos['melee']} → {stats_atuais['melee']}"""
+{stats_antigos['magic']} → {stats_atuais['magic']}"""
 )
 
         if stats_atuais["defense"] and stats_atuais["defense"] > stats_antigos.get("defense", 0):
@@ -441,7 +441,7 @@ def painel_online():
         recon_text = "\n".join(reconexoes)
 
     level = stats_memoria["level"]
-    melee = stats_memoria["melee"]
+    magic = stats_memoria["magic"]
     defense = stats_memoria["defense"]
     xp_antes = ""
 
@@ -462,7 +462,7 @@ def painel_online():
 
 🔷  _XP antes_ → **{xp_antes}**
 🏅  _Level_ → **{level}**
-🗡  _Melee_ → **{melee}**
+🧙‍♂️  _Magic → **{magic}**
 🛡  _Defense_ → **{defense}**"""
 
 # -----------------------
