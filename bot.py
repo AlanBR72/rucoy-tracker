@@ -516,11 +516,6 @@ while True:
             time.sleep(60)
             continue
 
-        if resumo_pendente and status == "offline":
-            print("📊 Enviando resumo diário (offline)...")
-            resumo_diario()
-            resumo_pendente = False
-
         # -----------------------
         # LOGIN
         # -----------------------
@@ -665,11 +660,11 @@ while True:
                 ultimo_status = "offline"
 
                 # -----------------------
-                # RESUMO PENDENTE
+                # RESUMO PENDENTE (SE JÁ ESTAVA OFFLINE)
                 # -----------------------
-                if resumo_pendente:
+                if resumo_pendente and status == "offline" and ultimo_status == "offline":
 
-                    print("📊 Enviando resumo após logout...")
+                    print("📊 Enviando resumo (já estava offline)...")
 
                     resumo_diario()
                     resumo_pendente = False
