@@ -255,7 +255,7 @@ f"""🎉 **LEVEL UP**
         if stats_atuais["magic"] and stats_atuais["magic"] > stats_antigos.get("magic", 0):
 
             enviar(
-f"""🗡 **MAGIC UP**
+f"""🪄 **MAGIC UP**
 
 {stats_antigos['magic']} → {stats_atuais['magic']}"""
 )
@@ -263,7 +263,7 @@ f"""🗡 **MAGIC UP**
         if stats_atuais["defense"] and stats_atuais["defense"] > stats_antigos.get("defense", 0):
 
             enviar(
-f"""🛡 **DEFENSE UP**
+f"""🛡️ **DEFENSE UP**
 
 {stats_antigos['defense']} → {stats_atuais['defense']}"""
 )
@@ -512,6 +512,16 @@ while True:
 
         status = verificar_status()
 
+        # -----------------------
+        # RESUMO PENDENTE (FORÇADO SE JÁ ESTÁ OFFLINE)
+        # -----------------------
+        if resumo_pendente and status == "offline" and ultimo_status == "offline":
+
+            print("📊 Enviando resumo (offline sem evento)...")
+
+            resumo_diario()
+            resumo_pendente = False
+
         if status is None:
             time.sleep(60)
             continue
@@ -660,11 +670,11 @@ while True:
                 ultimo_status = "offline"
 
                 # -----------------------
-                # RESUMO PENDENTE (SE JÁ ESTAVA OFFLINE)
+                # RESUMO PENDENTE (APÓS LOGOUT)
                 # -----------------------
-                if resumo_pendente and status == "offline" and ultimo_status == "offline":
+                if resumo_pendente:
 
-                    print("📊 Enviando resumo (já estava offline)...")
+                    print("📊 Enviando resumo após logout...")
 
                     resumo_diario()
                     resumo_pendente = False
