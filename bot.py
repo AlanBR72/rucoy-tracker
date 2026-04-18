@@ -301,17 +301,16 @@ def pegar_xp():
 
     return None
 
-def formatar_xp(xp):
-    if xp >= 1_000_000_000:
-        v = xp / 1_000_000_000
-        return f"{v:.1f}".rstrip("0").rstrip(".") + "kkk"
-    elif xp >= 1_000_000:
-        v = xp / 1_000_000
-        return f"{v:.1f}".rstrip("0").rstrip(".") + "kk"
-    elif xp >= 1_000:
-        v = xp / 1_000
-        return f"{v:.1f}".rstrip("0").rstrip(".") + "k"
-    return str(xp)
+def formatar_xp(valor):
+
+    if valor >= 1_000_000_000:  # bilhões
+        return f"{valor/1_000_000_000:.2f}kkk"
+
+    elif valor >= 1_000_000:  # milhões
+        return f"{valor/1_000_000:.0f}kk"
+
+    else:
+        return str(valor)
 
 # -----------------------
 # HISTÓRICO
