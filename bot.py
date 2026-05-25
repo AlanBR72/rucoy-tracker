@@ -15,7 +15,7 @@ CHAR_NAME = "Pravus Hades"
 
 url = "https://www.rucoyonline.com/characters/Pravus%20Hades"
 
-webhook = "https://discord.com/api/webhooks/1480607736155607121/1b-QFXqNgVHFkQuJlzWoX9M0ZI4pzYZcFBWpWVkHB9fMfxQoNuDTf778KwgMll3rDGXm"
+webhook = "https://discord.com/api/webhooks/1508611045143347240/5tA0ZwCJsLyzxMV2U62vckVVPSk68XGzrklf5zpgpQd7dtI37F3HPjwDzFy_pm8cQKMg"
 
 historico_file = "historico.json"
 estado_file = "estado_bot.json"
