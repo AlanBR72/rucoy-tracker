@@ -11,9 +11,9 @@ import traceback
 # CONFIG
 # ----------------------- 
 
-CHAR_NAME = "Pravus Hades"
+CHAR_NAME = "Pravus Alan"
 
-url = "https://www.rucoyonline.com/characters/Pravus%20Hades"
+url = "https://www.rucoyonline.com/characters/Pravus%20Alan"
 
 webhook = "https://discord.com/api/webhooks/1508611045143347240/5tA0ZwCJsLyzxMV2U62vckVVPSk68XGzrklf5zpgpQd7dtI37F3HPjwDzFy_pm8cQKMg"
 
