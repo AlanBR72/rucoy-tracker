@@ -256,25 +256,31 @@ def verificar_stats():
         if stats_atuais.get("level") is not None and stats_atuais["level"] > level_antigo:
 
             enviar(
-f"""🎉 **LEVEL UP**
+f"""🎉 **Level Up!**
 
-{level_antigo} → {stats_atuais['level']}"""
+🏅 `{level_antigo} ➜ {stats_atuais['level']}`
+
+🕒 `{datetime.now(BRASIL).strftime('%H:%M')}`"""
 )
 
         if stats_atuais.get("magic") is not None and stats_atuais["magic"] > magic_antigo:
 
             enviar(
-f"""🪄 **MAGIC UP**
+f"""🪄 **Magic Up!**
 
-{magic_antigo} → {stats_atuais['magic']}"""
+🪄 `{magic_antigo} ➜ {stats_atuais['magic']}`
+
+🕒 `{datetime.now(BRASIL).strftime('%H:%M')}`"""
 )
 
         if stats_atuais.get("defense") is not None and stats_atuais["defense"] > defense_antigo:
 
             enviar(
-f"""🛡️ **DEFENSE UP**
+f"""🛡️ **Defense Up!**
 
-{defense_antigo} → {stats_atuais['defense']}"""
+🛡️ `{defense_antigo} ➜ {stats_atuais['defense']}`
+
+🕒 `{datetime.now(BRASIL).strftime('%H:%M')}`"""
 )
 
     # Preserva o valor antigo quando alguma consulta retornar None.
@@ -421,7 +427,7 @@ def resumo_diario():
     xp_texto = ""
 
     if xp_total_dia >= 10_000_000:
-        xp_texto = f"\n💰 XP total: `+{formatar_xp(xp_total_dia)} XP`"
+        xp_texto = f"\n💰 XP total: `+{formatar_xp(xp_total_dia)}`"
 
     enviar(
 
@@ -457,38 +463,50 @@ def painel_online():
 
     tempo = datetime.now(BRASIL) - hora_login
 
-    h = tempo.seconds // 3600
-    m = (tempo.seconds % 3600) // 60
-
-    recon_text = ""
-
-    if reconexoes:
-        recon_text = "\n".join(reconexoes)
+    total_segundos = int(tempo.total_seconds())
+    h = total_segundos // 3600
+    m = (total_segundos % 3600) // 60
 
     level = stats_memoria["level"]
     magic = stats_memoria["magic"]
     defense = stats_memoria["defense"]
-    xp_antes = ""
+
+    xp_atual = pegar_xp()
+
+    xp_inicial_texto = "Indisponível"
+    xp_atual_texto = "Indisponível"
+    xp_ganho_texto = "Calculando..."
 
     if xp_inicio_sessao is not None:
-        xp_antes = f"{xp_inicio_sessao:,} XP".replace(",", ".")
+        xp_inicial_texto = f"{xp_inicio_sessao:,}".replace(",", ".")
 
-    return f"""📊  **_{CHAR_NAME} Tracker_**  📊
+    if xp_atual is not None:
+        xp_atual_texto = f"{xp_atual:,}".replace(",", ".")
 
-🟢  **Status:** _Online_
-🕒  **Logado às:** _{hora_login.strftime('%H:%M')}_
-⌛  **Sessão atual:** _{h}h {m}m_
+    if xp_inicio_sessao is not None and xp_atual is not None:
+        ganho_atual = max(0, xp_atual - xp_inicio_sessao)
+        xp_ganho_texto = f"+{formatar_xp(ganho_atual)}"
 
-{recon_text}
+    recon_text = ""
 
-━━━━━━━━━━━━━━
+    if reconexoes:
+        recon_text = (
+            f"\n\n🔁 Reconexões: `{len(reconexoes)}`\n"
+            + "\n".join(reconexoes)
+        )
 
-🔥  **Stats atuais**  🔥
+    return f"""📊 **{CHAR_NAME} Tracker**
 
-🔷  _XP antes_ → **{xp_antes}**
-🏅  _Level_ → **{level}**
-🧙‍♂️  _Magic_ → **{magic}**
-🛡  _Defense_ → **{defense}**"""
+🟢 Online desde `{hora_login.strftime('%H:%M')}`
+⌛ Sessão: `{h}h {m}m`
+
+🔷 XP inicial: `{xp_inicial_texto}`
+🔶 XP atual: `{xp_atual_texto}`
+📈 XP ganho: `{xp_ganho_texto}`
+
+🏅 Level `{level}` • 🪄 Magic `{magic}` • 🛡 Defense `{defense}`{recon_text}
+
+🕒 Atualizado às `{datetime.now(BRASIL).strftime('%H:%M')}`"""
 
 # -----------------------
 # PAINEL OFFLINE
@@ -498,19 +516,35 @@ def painel_offline():
 
     tempo = hora_logout - hora_login
 
-    h = tempo.seconds//3600
-    m = (tempo.seconds%3600)//60
+    total_segundos = int(tempo.total_seconds())
+    h = total_segundos // 3600
+    m = (total_segundos % 3600) // 60
+
+    level = stats_memoria["level"]
+    magic = stats_memoria["magic"]
+    defense = stats_memoria["defense"]
 
     xp_texto = ""
 
-    if xp_sessao_total >= 5_000_000:
-        xp_texto = f"\n💰  **XP da sessão:** _+{xp_sessao_total:,} XP_"
+    if xp_sessao_total >= 10_000_000:
+        xp_texto = f"\n\n💰 XP da sessão: `+{formatar_xp(xp_sessao_total)}`"
 
-    return f"""📊  **_{CHAR_NAME} Tracker_**  📊
+    recon_text = ""
 
-🔴  **Status:** _Offline_
-🕒  **Deslogou às:** _{hora_logout.strftime('%H:%M')}_
-⌛  **Sessão durou:** _{h}h {m}m_{xp_texto}"""
+    if reconexoes:
+        recon_text = (
+            f"\n\n🔁 Reconexões: `{len(reconexoes)}`\n"
+            + "\n".join(reconexoes)
+        )
+
+    return f"""📊 **{CHAR_NAME} Tracker**
+
+🔴 Offline às `{hora_logout.strftime('%H:%M')}`
+⌛ Sessão: `{h}h {m}m`{xp_texto}
+
+🏅 Level `{level}` • 🪄 Magic `{magic}` • 🛡 Defense `{defense}`{recon_text}
+
+🕒 Encerrado às `{hora_logout.strftime('%H:%M')}`"""
 
 # -----------------------
 # INICIO
@@ -564,21 +598,20 @@ while True:
 
                     xp_final = pegar_xp()
 
-                    msg_recon = f"_🔁  Reconectou ({offline_time}s) [{agora.strftime('%H:%M')}]_"
-                    reconexoes.append(msg_recon)
+                    ganho = 0
 
-                    # XP ganho
                     if xp_inicio_sessao is not None and xp_final is not None:
-
-                        ganho = xp_final - xp_inicio_sessao
+                        ganho = max(0, xp_final - xp_inicio_sessao)
                         xp_sessao_total += ganho
                         xp_total_dia += ganho
-
-                        if ganho >= 5_000_000:
-                            msg_xp = f"**💰  XP GAIN →** _+{formatar_xp(ganho)} XP_"
-                            reconexoes.append(msg_xp)
-
                         xp_inicio_sessao = xp_final
+
+                    linha_reconexao = f"`{agora.strftime('%H:%M')}` ({offline_time}s)"
+
+                    if ganho >= 5_000_000:
+                        linha_reconexao += f" • `+{formatar_xp(ganho)}`"
+
+                    reconexoes.append(linha_reconexao)
 
                     reconexoes = reconexoes[-6:]
                     reconexoes_dia += 1
@@ -634,21 +667,20 @@ while True:
 
                     xp_final = pegar_xp()
 
-                    msg_recon = f"_🔁  Reconectou ({recon_time}s) [{datetime.now(BRASIL).strftime('%H:%M')}]_"
-                    reconexoes.append(msg_recon)
+                    ganho = 0
 
-                    # XP ganho
                     if xp_inicio_sessao is not None and xp_final is not None:
-
-                        ganho = xp_final - xp_inicio_sessao
+                        ganho = max(0, xp_final - xp_inicio_sessao)
                         xp_sessao_total += ganho
                         xp_total_dia += ganho
-
-                        if ganho >= 5_000_000:
-                            msg_xp = f"**💰  XP GAIN →** _+{formatar_xp(ganho)} XP_"
-                            reconexoes.append(msg_xp)
-
                         xp_inicio_sessao = xp_final
+
+                    linha_reconexao = f"`{datetime.now(BRASIL).strftime('%H:%M')}` ({recon_time}s)"
+
+                    if ganho >= 5_000_000:
+                        linha_reconexao += f" • `+{formatar_xp(ganho)}`"
+
+                    reconexoes.append(linha_reconexao)
 
                     reconexoes = reconexoes[-6:]
                     reconexoes_dia += 1
@@ -673,7 +705,7 @@ while True:
 
                 if xp_inicio_sessao is not None and xp_final is not None:
 
-                    ganho = xp_final - xp_inicio_sessao
+                    ganho = max(0, xp_final - xp_inicio_sessao)
                     xp_sessao_total += ganho
                     xp_total_dia += ganho
 
