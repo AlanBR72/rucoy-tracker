@@ -472,20 +472,18 @@ def painel_online():
     defense = stats_memoria["defense"]
 
     xp_atual = pegar_xp()
-
-    xp_inicial_texto = "Indisponível"
-    xp_atual_texto = "Indisponível"
-    xp_ganho_texto = "Calculando..."
-
-    if xp_inicio_sessao is not None:
-        xp_inicial_texto = f"{xp_inicio_sessao:,}".replace(",", ".")
-
-    if xp_atual is not None:
-        xp_atual_texto = f"{xp_atual:,}".replace(",", ".")
+    xp_texto = ""
 
     if xp_inicio_sessao is not None and xp_atual is not None:
         ganho_atual = max(0, xp_atual - xp_inicio_sessao)
-        xp_ganho_texto = f"+{formatar_xp(ganho_atual)}"
+
+        if ganho_atual >= 5_000_000:
+            xp_inicial_texto = f"{xp_inicio_sessao:,}".replace(",", ".")
+            xp_atual_texto = f"{xp_atual:,}".replace(",", ".")
+            xp_texto = f"""\n
+🔷 XP inicial: `{xp_inicial_texto}`
+🔶 XP atual: `{xp_atual_texto}`
+📈 XP ganho: `+{formatar_xp(ganho_atual)}`"""
 
     recon_text = ""
 
@@ -498,11 +496,7 @@ def painel_online():
     return f"""📊 **{CHAR_NAME} Tracker**
 
 🟢 Online desde `{hora_login.strftime('%H:%M')}`
-⌛ Sessão: `{h}h {m}m`
-
-🔷 XP inicial: `{xp_inicial_texto}`
-🔶 XP atual: `{xp_atual_texto}`
-📈 XP ganho: `{xp_ganho_texto}`
+⌛ Sessão: `{h}h {m}m`{xp_texto}
 
 🏅 Level `{level}` • 🪄 Magic `{magic}` • 🛡 Defense `{defense}`{recon_text}
 
